@@ -2,7 +2,7 @@ defmodule OmegleClone.EtsServer.Cache do
   use GenServer
 
   @tables ~w(
-    room:members room:messages
+    rooms room:members room:messages
   )a
 
   def init(arg) do
