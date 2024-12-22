@@ -18,7 +18,7 @@ defmodule OmegleClone.Application do
       # {OmegleClone.Worker, arg},
       # Start to serve requests, typically the last entry
       OmegleCloneWeb.Endpoint,
-      OmegleClone.EtsServer.Cache
+      OmegleCloneWeb.Presence
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

@@ -59,7 +59,14 @@ defmodule OmegleClone.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
-      {:uuid, "~> 1.1"}
+      {:uuid, "~> 1.1"},
+      {:unique_names_generator, "~> 0.2.0"},
+      {:ex_webrtc, "~> 0.7.0"},
+      {:ex_webrtc_dashboard, "~> 0.7.0"},
+
+      # Dialyzer and credo
+      {:dialyxir, ">= 0.0.0", only: :dev, runtime: false},
+      {:credo, ">= 0.0.0", only: :dev, runtime: false}
     ]
   end
 

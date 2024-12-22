@@ -18,6 +18,10 @@ defmodule OmegleCloneWeb.Router do
     pipe_through :browser
 
     live "/", LandingLive.Index, :index
+
+    live_session :default, on_mount: OmegleClone.RoomLive.Auth do
+      live "/room/:id", RoomLive.Show, :show
+    end
   end
 
   # Other scopes may use custom stacks.

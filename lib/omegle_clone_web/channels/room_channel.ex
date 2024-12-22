@@ -1,6 +1,8 @@
 defmodule OmegleCloneWeb.RoomChannel do
   use OmegleCloneWeb, :channel
 
+  require Logger
+
   @impl true
   def join("room:lobby", payload, socket) do
     if authorized?(payload) do

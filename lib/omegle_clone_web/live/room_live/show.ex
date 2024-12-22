@@ -1,4 +1,4 @@
-defmodule OmegleCloneWeb.LandingLive.Index do
+defmodule OmegleCloneWeb.RoomLive.Show do
   use OmegleCloneWeb, :live_view
 
   @impl true
