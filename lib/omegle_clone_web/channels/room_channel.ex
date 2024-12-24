@@ -9,7 +9,7 @@ defmodule OmegleCloneWeb.RoomChannel do
       pid = self()
       send(pid, :after_join)
 
-      case Nexus.RoomRegistryServer.create_room(room_id) do
+      case OmegleClone.RoomRegistryServer.create_room(room_id) do
         {:ok, _room_pid} ->
           case Room.add_peer(room_id, pid) do
             {:ok, peer_id} ->
