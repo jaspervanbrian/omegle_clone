@@ -18,7 +18,10 @@ defmodule OmegleClone.Application do
       # {OmegleClone.Worker, arg},
       # Start to serve requests, typically the last entry
       OmegleCloneWeb.Endpoint,
-      OmegleCloneWeb.Presence
+      OmegleCloneWeb.Presence,
+      OmegleClone.RoomSupervisor,
+      Nexus.RoomRegistryServer,
+      {Registry, name: Nexus.RoomRegistry, keys: :unique},
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

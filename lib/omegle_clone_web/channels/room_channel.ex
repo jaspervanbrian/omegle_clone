@@ -73,7 +73,7 @@ defmodule OmegleCloneWeb.RoomChannel do
     if ((socket |> Presence.list |> Enum.count) - 1) <= 0 do
       room_id = socket.assigns.room_id
 
-      Nexus.RoomRegistryServer.terminate_room(room_id)
+      OmegleClone.RoomRegistryServer.terminate_room(room_id)
     end
 
     {:noreply, socket}
