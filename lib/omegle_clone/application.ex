@@ -20,8 +20,8 @@ defmodule OmegleClone.Application do
       OmegleCloneWeb.Endpoint,
       OmegleCloneWeb.Presence,
       OmegleClone.RoomSupervisor,
-      Nexus.RoomRegistryServer,
-      {Registry, name: Nexus.RoomRegistry, keys: :unique},
+      OmegleClone.RoomRegistryServer,
+      {Registry, name: OmegleClone.RoomRegistry, keys: :unique},
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
