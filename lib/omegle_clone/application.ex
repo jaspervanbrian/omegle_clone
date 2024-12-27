@@ -19,8 +19,10 @@ defmodule OmegleClone.Application do
       # Start to serve requests, typically the last entry
       OmegleCloneWeb.Endpoint,
       OmegleCloneWeb.Presence,
+      OmegleClone.PeerSupervisor,
       OmegleClone.RoomSupervisor,
       OmegleClone.RoomRegistryServer,
+      {Registry, name: OmegleClone.PeerRegistry, keys: :unique},
       {Registry, name: OmegleClone.RoomRegistry, keys: :unique},
     ]
 
