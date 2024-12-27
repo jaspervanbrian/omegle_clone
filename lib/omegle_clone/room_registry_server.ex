@@ -6,6 +6,7 @@ defmodule OmegleClone.RoomRegistryServer do
   require Logger
 
   alias OmegleClone.RoomSupervisor
+  alias OmegleClone.EtsServer.Cache
 
   def start_link(_) do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
@@ -70,11 +71,7 @@ defmodule OmegleClone.RoomRegistryServer do
 
   def handle_call({:terminate_room, room_id}, _from, state) do
     {room_pid, state} = Map.pop(state, room_id)
-    IO.inspect(String.duplicate("9", 100))
-    IO.inspect(state)
-    IO.inspect(room_id)
-    IO.inspect(room_pid)
-    IO.inspect(String.duplicate("9", 100))
+    Cache.delete(:active_rooms, room_id)
 
     {:reply, RoomSupervisor.terminate_room(room_id), state}
   end

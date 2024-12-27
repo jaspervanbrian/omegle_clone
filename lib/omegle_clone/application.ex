@@ -17,6 +17,7 @@ defmodule OmegleClone.Application do
       # Start a worker by calling: OmegleClone.Worker.start_link(arg)
       # {OmegleClone.Worker, arg},
       # Start to serve requests, typically the last entry
+      OmegleClone.EtsServer.Cache,
       OmegleCloneWeb.Endpoint,
       OmegleCloneWeb.Presence,
       OmegleClone.PeerSupervisor,

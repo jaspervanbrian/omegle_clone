@@ -6,6 +6,7 @@ defmodule OmegleClone.Room do
   require Logger
 
   alias OmegleClone.{Peer, PeerSupervisor}
+  alias OmegleClone.EtsServer.Cache
   alias OmegleCloneWeb.PeerChannel
 
   @peer_ready_timeout_s 10
@@ -37,8 +38,9 @@ defmodule OmegleClone.Room do
   def registry_id(room_id), do: {:via, Registry, {OmegleClone.RoomRegistry, "room:#{room_id}"}}
 
   @impl true
-  def init(_opts) do
+  def init([room_id]) do
     state = %{
+      room_id: room_id,
       peers: %{},
       pending_peers: %{},
       peer_pid_to_id: %{}
@@ -48,15 +50,18 @@ defmodule OmegleClone.Room do
   end
 
   @impl true
-  def handle_call({:add_peer, _room_id, _channel_pid}, _from, state)
+  def handle_call({:add_peer, room_id, _channel_pid}, _from, state)
       when map_size(state.pending_peers) + map_size(state.peers) == @peer_limit do
     Logger.warning("Unable to add new peer: reached peer limit (#{@peer_limit})")
+    refresh_room_ets_status(state)
 
     {:reply, {:error, :peer_limit_reached}, state}
   end
 
   @impl true
   def handle_call({:add_peer, room_id, channel_pid}, _from, state) do
+    refresh_room_ets_status(state)
+
     id = generate_id()
     Logger.info("New peer #{id} added")
     peer_ids = Map.keys(state.peers)
@@ -100,11 +105,11 @@ defmodule OmegleClone.Room do
     cleanup_all_peers(state)
 
     state = %{
+      room_id: state.room_id,
       peers: %{},
       pending_peers: %{},
       peer_pid_to_id: %{}
     }
-
 
     {:reply, :ok, state}
   end
@@ -145,6 +150,8 @@ defmodule OmegleClone.Room do
         true -> state
       end
 
+    refresh_room_ets_status(state)
+
     {:noreply, state}
   end
 
@@ -165,5 +172,19 @@ defmodule OmegleClone.Room do
     state
     |> peer_ids()
     |> Enum.each(&PeerSupervisor.terminate_peer(&1))
+  end
+
+  defp refresh_room_ets_status(state) do
+    peer_count = map_size(state.pending_peers) + map_size(state.peers)
+    status = if peer_count >= @peer_limit do
+      "full"
+    else
+      "available"
+    end
+
+    Cache.insert(:active_rooms, state.room_id, %{
+      peer_count: peer_count,
+      status: status
+    })
   end
 end
