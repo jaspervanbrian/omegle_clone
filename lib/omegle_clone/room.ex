@@ -176,19 +176,19 @@ defmodule OmegleClone.Room do
   defp refresh_room_ets_status(state) do
     peer_count = map_size(state.pending_peers) + map_size(state.peers)
 
-    if peer_count === 0 do
-      Cache.delete(:active_rooms, state.room_id)
-    else
-      status = if peer_count >= @peer_limit do
-        "full"
-      else
-        "available"
-      end
+    case Cache.lookup(:active_rooms, state.room_id) do
+      nil -> nil
+      _ ->
+        status = if peer_count >= @peer_limit do
+          "full"
+        else
+          "available"
+        end
 
-      Cache.insert(:active_rooms, state.room_id, %{
-        peer_count: peer_count,
-        status: status
-      })
+        Cache.insert(:active_rooms, state.room_id, %{
+          peer_count: peer_count,
+          status: status
+        })
     end
   end
 end
