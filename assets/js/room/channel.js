@@ -8,16 +8,15 @@ const handleJoinError = (error) => {
   errorNode.classList.remove('hidden');
 }
 
+const getRoomId = () => {
+  return window.location.pathname.split('/').filter(Boolean).pop()
+}
+
 export const joinChannel = async ({ peerConnection }) => {
   const socket = new Socket('/socket');
   socket.connect();
 
-  const queryString = window.location.search;
-  const urlParams = new URLSearchParams(queryString);
-
-  channel = urlParams.get('pro') ?
-    socket.channel(`peer:hellooooo`) :
-    socket.channel(`peer:signalling`);
+  channel = socket.channel(`room:${getRoomId()}`);
 
   channel.on('sdp_offer', async (payload) => {
     try {
@@ -40,9 +39,7 @@ export const joinChannel = async ({ peerConnection }) => {
 
   const presence = new Presence(channel);
   presence.onSync(() => {
-    const peerCount = document.getElementById('viewercount');
-
-    peerCount.innerText = presence.list().length;
+    console.log("Peer count: ", presence.list().length)
   });
 
   peerConnection.onicecandidate = (event) => {

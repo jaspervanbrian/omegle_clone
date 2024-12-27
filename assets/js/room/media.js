@@ -1,7 +1,3 @@
-const localVideoPlayer = document.getElementById('videoplayer-local');
-const cameraToggle = document.getElementById('camera-toggle');
-const micToggle = document.getElementById('mic-toggle');
-
 let localStream = undefined;
 let dummyStream = undefined;
 let isDummyStreamVideoActive = false;
@@ -92,6 +88,9 @@ const createDummyStream = () => {
 }
 
 const updateToggleButtons = (isInitializing = false) => {
+  const cameraToggle = document.getElementById('camera-toggle');
+  const micToggle = document.getElementById('mic-toggle');
+
   if (isInitializing) {
     // Set initial state for both toggles
     cameraToggle.textContent = 'Turn On Camera';
@@ -124,6 +123,8 @@ const updateToggleButtons = (isInitializing = false) => {
 
 // Initialize the dummy stream and add it to peer connection
 const initializeDummyStream = async (peerConnection) => {
+  const localVideoPlayer = document.getElementById('videoplayer-local');
+
   dummyStream = createDummyStream();
 
   if (localVideoPlayer) {
@@ -158,6 +159,7 @@ const removeAudioTracks = () => {
 }
 
 const toggleVideoMode = async (peerConnection) => {
+  const localVideoPlayer = document.getElementById('videoplayer-local');
   const hasVideoTrack = localStream?.getVideoTracks().length > 0;
 
   if (!hasVideoTrack || isDummyStreamVideoActive) {
@@ -280,6 +282,9 @@ const toggleMedia = async (type, peerConnection) => {
 }
 
 export const setupMedia = async ({ peerConnection }) => {
+  const cameraToggle = document.getElementById('camera-toggle');
+  const micToggle = document.getElementById('mic-toggle');
+
   // Initialize dummy stream before joining channel
   await initializeDummyStream(peerConnection);
 

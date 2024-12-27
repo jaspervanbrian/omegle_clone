@@ -41,6 +41,7 @@ defmodule OmegleClone.RoomRegistryServer do
       nil ->
         case RoomSupervisor.add_room(room_id) do
           {:ok, supervisor} ->
+            Cache.insert(:active_rooms, room_id, %{peer_count: 0, status: "available"})
             {:reply, {:ok, supervisor}, Map.put(state, room_id, supervisor)}
 
           {:error, {:already_started, supervisor}} ->
@@ -70,7 +71,7 @@ defmodule OmegleClone.RoomRegistryServer do
   end
 
   def handle_call({:terminate_room, room_id}, _from, state) do
-    {room_pid, state} = Map.pop(state, room_id)
+    {_room_pid, state} = Map.pop(state, room_id)
     Cache.delete(:active_rooms, room_id)
 
     {:reply, RoomSupervisor.terminate_room(room_id), state}

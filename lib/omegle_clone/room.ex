@@ -7,7 +7,6 @@ defmodule OmegleClone.Room do
 
   alias OmegleClone.{Peer, PeerSupervisor}
   alias OmegleClone.EtsServer.Cache
-  alias OmegleCloneWeb.PeerChannel
 
   @peer_ready_timeout_s 10
   @peer_limit 5
@@ -50,7 +49,7 @@ defmodule OmegleClone.Room do
   end
 
   @impl true
-  def handle_call({:add_peer, room_id, _channel_pid}, _from, state)
+  def handle_call({:add_peer, _room_id, _channel_pid}, _from, state)
       when map_size(state.pending_peers) + map_size(state.peers) == @peer_limit do
     Logger.warning("Unable to add new peer: reached peer limit (#{@peer_limit})")
     refresh_room_ets_status(state)
@@ -101,7 +100,7 @@ defmodule OmegleClone.Room do
   end
 
   @impl true
-  def handle_call({:close_peers, room_id}, _from, state) do
+  def handle_call({:close_peers, _room_id}, _from, state) do
     cleanup_all_peers(state)
 
     state = %{
@@ -135,13 +134,13 @@ defmodule OmegleClone.Room do
     state =
       cond do
         is_map_key(state.pending_peers, id) ->
-          {peer_data, state} = pop_in(state, [:pending_peers, id])
+          {_peer_data, state} = pop_in(state, [:pending_peers, id])
           :ok = PeerSupervisor.terminate_peer(id)
 
           state
 
         is_map_key(state.peers, id) ->
-          {peer_data, state} = pop_in(state, [:peers, id])
+          {_peer_data, state} = pop_in(state, [:peers, id])
           :ok = PeerSupervisor.terminate_peer(id) 
           broadcast({:peer_removed, id}, state)
 

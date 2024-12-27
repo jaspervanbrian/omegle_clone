@@ -295,7 +295,7 @@ defmodule OmegleClone.Peer do
   end
 
   @impl true
-  def handle_info({:DOWN, _ref, :process, pid, reason}, state) do
+  def handle_info({:DOWN, _ref, :process, _pid, _reason}, state) do
     {:stop, {:shutdown, :peer_connection_closed}, state}
   end
 

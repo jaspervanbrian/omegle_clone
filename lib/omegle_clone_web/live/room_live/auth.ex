@@ -9,7 +9,7 @@ defmodule OmegleClone.RoomLive.Auth do
     else
       {:halt,
         socket
-        |> put_flash(:error, "Room not found!")
+        |> put_flash(:error, "Room maybe full or not found!")
         |> redirect(to: "/")
       }
     end
@@ -17,7 +17,7 @@ defmodule OmegleClone.RoomLive.Auth do
 
   defp room_available?(id) do
     case Cache.match_object(:active_rooms, {id, %{status: "available"}}) do
-      [{id, _}] -> true
+      [{^id, _}] -> true
       _ -> false
     end
   end

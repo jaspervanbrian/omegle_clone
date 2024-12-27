@@ -11,7 +11,7 @@ defmodule OmegleCloneWeb.RoomLive.Show do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  defp apply_action(socket, :index, _params) do
+  defp apply_action(socket, :show, _params) do
     socket
     |> assign(:page_title, "Omegle Clone")
   end
