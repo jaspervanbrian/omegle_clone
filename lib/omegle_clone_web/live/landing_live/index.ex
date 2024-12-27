@@ -38,7 +38,6 @@ defmodule OmegleCloneWeb.LandingLive.Index do
   end
 
   defp create_random_room_and_join do
-    IO.inspect("create")
     room_id = UUID.uuid4()
 
     case OmegleClone.RoomRegistryServer.create_room(room_id) do

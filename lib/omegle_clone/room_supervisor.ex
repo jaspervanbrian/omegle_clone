@@ -6,6 +6,7 @@ defmodule OmegleClone.RoomSupervisor do
   require Logger
 
   alias OmegleClone.Room
+  alias OmegleClone.EtsServer.Cache
 
   @spec start_link(any()) :: DynamicSupervisor.on_start_child()
   def start_link(arg) do

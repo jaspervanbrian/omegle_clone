@@ -5,7 +5,7 @@ defmodule OmegleClone.RoomRegistryServer do
 
   require Logger
 
-  alias OmegleClone.RoomSupervisor
+  alias OmegleClone.{RoomSupervisor, Room}
   alias OmegleClone.EtsServer.Cache
 
   def start_link(_) do
@@ -18,6 +18,10 @@ defmodule OmegleClone.RoomRegistryServer do
 
   def create_room(room_id) do
     GenServer.call(__MODULE__, {:create_room, room_id})
+  end
+
+  def join_room(room_id, channel_pid) do
+    GenServer.call(__MODULE__, {:join_room, room_id, channel_pid})
   end
 
   def get_room(room_id) do
@@ -38,23 +42,31 @@ defmodule OmegleClone.RoomRegistryServer do
 
   def handle_call({:create_room, room_id}, _from, state) do
     case Map.get(state, room_id) do
-      nil ->
-        case RoomSupervisor.add_room(room_id) do
-          {:ok, supervisor} ->
-            Cache.insert(:active_rooms, room_id, %{peer_count: 0, status: "available"})
-            {:reply, {:ok, supervisor}, Map.put(state, room_id, supervisor)}
-
-          {:error, {:already_started, supervisor}} ->
-            Logger.info("Supervisor already exists for room_id: #{room_id}")
-            {:reply, {:ok, supervisor}, Map.put(state, room_id, supervisor)}
-
-          error ->
-            Logger.error("Failed to start supervisor for room_id: #{room_id}, error: #{inspect(error)}")
-            error
-        end
+      nil -> state |> create_room(room_id)
 
       supervisor ->
         {:reply, {:ok, supervisor}, state}
+    end
+  end
+
+  def handle_call({:join_room, room_id, channel_pid}, _from, state) do
+    case Map.get(state, room_id) do
+      nil -> state |> create_room(room_id)
+
+      supervisor ->
+        {:reply, {:ok, supervisor}, state}
+    end
+    |> case do
+      {:reply, _, state} ->
+        add_peer(room_id, channel_pid)
+        |> case do
+          {:ok, _peer_id} = result ->
+            {:reply, result, state}
+
+          error -> {:reply, error, state}
+        end
+
+      error -> {:reply, error, state}
     end
   end
 
@@ -75,5 +87,29 @@ defmodule OmegleClone.RoomRegistryServer do
     Cache.delete(:active_rooms, room_id)
 
     {:reply, RoomSupervisor.terminate_room(room_id), state}
+  end
+
+  defp create_room(state, room_id) do
+    case RoomSupervisor.add_room(room_id) do
+      {:ok, supervisor} ->
+        Cache.insert(:active_rooms, room_id, %{peer_count: 0, status: "available"})
+        {:reply, {:ok, supervisor}, Map.put(state, room_id, supervisor)}
+
+      {:error, {:already_started, supervisor}} ->
+        Logger.info("Supervisor already exists for room_id: #{room_id}")
+        {:reply, {:ok, supervisor}, Map.put(state, room_id, supervisor)}
+
+      error ->
+        Logger.error("Failed to start supervisor for room_id: #{room_id}, error: #{inspect(error)}")
+        error
+    end
+  end
+
+  defp add_peer(room_id, channel_pid) do
+    case Room.add_peer(room_id, channel_pid) do
+      {:ok, _peer_id} = result -> result
+
+      {:error, _reason} = error -> error
+    end
   end
 end
