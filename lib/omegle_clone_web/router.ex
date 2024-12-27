@@ -41,7 +41,8 @@ defmodule OmegleCloneWeb.Router do
     scope "/dev" do
       pipe_through :browser
 
-      live_dashboard "/dashboard", metrics: OmegleCloneWeb.Telemetry
+      live_dashboard "/dashboard", metrics: NexusWeb.Telemetry, additional_pages: [exwebrtc: ExWebRTCDashboard]
+
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
   end
