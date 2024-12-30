@@ -23,10 +23,11 @@ const createPeerVideoEl = (event) => {
   const videoPlayer = document.createElement('video');
 
   videoPlayer.id = trackId;
-  videoPlayer.srcObject = new MediaStream([event.track]);
+  videoPlayer.srcObject = event.streams[0];
   videoPlayer.autoplay = true;
   videoPlayer.playsInline = true;
-  videoPlayer.className = 'rounded-xl w-full h-full object-cover bg-black';
+  videoPlayer.muted = true;
+  videoPlayer.className = 'peer-stream rounded-xl w-full h-full object-cover bg-black';
 
   videoPlayer.play().catch(e => console.log('Playback failed:', e));
 

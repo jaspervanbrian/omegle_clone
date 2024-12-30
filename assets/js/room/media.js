@@ -228,6 +228,7 @@ const toggleVideoMode = async (peerConnection) => {
 
     const dummyVideoTrack = dummyStream.getVideoTracks()[0];
     const sender = peerConnection.getSenders().find(s => s.track?.kind === 'video');
+
     if (sender) {
       await sender.replaceTrack(dummyVideoTrack);
     }
@@ -267,6 +268,7 @@ const toggleAudioMode = async (peerConnection) => {
       localStream.addTrack(audioTrack);
 
       const sender = peerConnection.getSenders().find(s => s.track?.kind === 'audio');
+
       if (sender) {
         await sender.replaceTrack(audioTrack);
       } else {
@@ -303,8 +305,10 @@ const toggleMedia = async (type, peerConnection) => {
 
 const playAllPeerStreamsOnStartup = async () => {
   const videoPlayerWrapper = document.getElementById('videoplayer-wrapper');
+  const videoChildren = videoPlayerWrapper.querySelectorAll('.peer-stream');
 
-  for (video of videoPlayerWrapper.children) {
+  for (video of videoChildren) {
+    video.muted = false;
     await video.play();
   }
 }

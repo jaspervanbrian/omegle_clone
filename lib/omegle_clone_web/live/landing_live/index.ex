@@ -24,6 +24,7 @@ defmodule OmegleCloneWeb.LandingLive.Index do
       {:ok, room_id} ->
         {:noreply,
           socket
+          |> put_flash(:joined_room, "interacted")
           |> push_navigate(to: ~p"/room/#{room_id}", replace: true)
         }
 
