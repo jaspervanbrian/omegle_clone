@@ -13,7 +13,9 @@ const updateVideoGrid = () => {
                  videoCount <= 16 ? 'grid-cols-4' :
                  'grid-cols-5';
 
-  videoPlayerWrapper.className = `w-full h-full grid gap-2 p-2 auto-rows-fr ${columns}`;
+  videoPlayerWrapper.className = `
+    w-full h-full grid gap-2 p-2 auto-rows-fr place-items-center grid-cols-1 sm:${columns}
+  `;
 }
 
 const createPeerVideoEl = (event) => {
@@ -24,7 +26,9 @@ const createPeerVideoEl = (event) => {
   videoPlayer.srcObject = new MediaStream([event.track]);
   videoPlayer.autoplay = true;
   videoPlayer.playsInline = true;
-  videoPlayer.className = 'rounded-xl w-full h-full object-cover';
+  videoPlayer.className = 'rounded-xl w-full h-full object-cover bg-black';
+
+  videoPlayer.play().catch(e => console.log('Playback failed:', e));
 
   const videoPlayerWrapper = document.getElementById('videoplayer-wrapper');
   videoPlayerWrapper.appendChild(videoPlayer);
@@ -34,6 +38,7 @@ const createPeerVideoEl = (event) => {
 
 export const createPeerConnection = async () => {
   const pc = new RTCPeerConnection(pcConfig);
+  document.body.click()
 
   pc.ontrack = (event) => {
     if (event.track.kind == 'video') {

@@ -588,12 +588,13 @@ defmodule OmegleCloneWeb.CoreComponents do
       <.icon name="hero-x-mark-solid" />
       <.icon name="hero-arrow-path" class="ml-1 w-3 h-3 animate-spin" />
   """
+  attr :id, :string, default: ""
   attr :name, :string, required: true
   attr :class, :string, default: nil
 
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
-    <span class={[@name, @class]} />
+    <span class={[@name, @class]} id={@id} />
     """
   end
 

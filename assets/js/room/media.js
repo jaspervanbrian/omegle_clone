@@ -91,13 +91,21 @@ const updateToggleButtons = (isInitializing = false) => {
   const cameraToggle = document.getElementById('camera-toggle');
   const micToggle = document.getElementById('mic-toggle');
 
+  const cameraToggleIconMuted = document.getElementById('camera-toggle-icon-muted');
+  const cameraToggleIcon = document.getElementById('camera-toggle-icon');
+
+  const micToggleIconMuted = document.getElementById('mic-toggle-icon-muted');
+  const micToggleIcon = document.getElementById('mic-toggle-icon');
+
   if (isInitializing) {
     // Set initial state for both toggles
-    cameraToggle.textContent = 'Turn On Camera';
+    cameraToggleIconMuted.classList.remove('hidden');
+    cameraToggleIcon.classList.add('hidden');
     cameraToggle.classList.remove('bg-green-500');
     cameraToggle.classList.add('bg-red-500');
 
-    micToggle.textContent = 'Turn On Mic';
+    micToggleIconMuted.classList.remove('hidden');
+    micToggleIcon.classList.add('hidden');
     micToggle.classList.remove('bg-green-500');
     micToggle.classList.add('bg-red-500');
 
@@ -110,12 +118,24 @@ const updateToggleButtons = (isInitializing = false) => {
     const audioTrack = localStream.getAudioTracks()[0];
 
     const videoTrackEnabled = (videoTrack && videoTrack.enabled && !isDummyStreamVideoActive)
-    cameraToggle.textContent =  videoTrackEnabled ? 'Turn Off Camera' : 'Turn On Camera';
+    if (videoTrackEnabled) {
+      cameraToggleIconMuted.classList.add('hidden');
+      cameraToggleIcon.classList.remove('hidden');
+    } else {
+      cameraToggleIconMuted.classList.remove('hidden');
+      cameraToggleIcon.classList.add('hidden');
+    }
     cameraToggle.classList.toggle('bg-red-500', !videoTrackEnabled);
     cameraToggle.classList.toggle('bg-green-500', videoTrackEnabled);
 
     const audioTrackEnabled = (audioTrack && audioTrack.enabled && !isDummyStreamAudioActive)
-    micToggle.textContent =  audioTrackEnabled ?  'Turn Off Mic' : 'Turn On Mic';
+    if (audioTrackEnabled) {
+      micToggleIconMuted.classList.add('hidden');
+      micToggleIcon.classList.remove('hidden');
+    } else {
+      micToggleIconMuted.classList.remove('hidden');
+      micToggleIcon.classList.add('hidden');
+    }
     micToggle.classList.toggle('bg-red-500', !audioTrackEnabled);
     micToggle.classList.toggle('bg-green-500', audioTrackEnabled);
   }
@@ -281,6 +301,14 @@ const toggleMedia = async (type, peerConnection) => {
   updateToggleButtons();
 }
 
+const playAllPeerStreamsOnStartup = async () => {
+  const videoPlayerWrapper = document.getElementById('videoplayer-wrapper');
+
+  for (video of videoPlayerWrapper.children) {
+    await video.play();
+  }
+}
+
 export const setupMedia = async ({ peerConnection }) => {
   const cameraToggle = document.getElementById('camera-toggle');
   const micToggle = document.getElementById('mic-toggle');
@@ -291,4 +319,6 @@ export const setupMedia = async ({ peerConnection }) => {
   // Set up toggle button listeners
   cameraToggle.addEventListener('click', () => toggleMedia('video', peerConnection));
   micToggle.addEventListener('click', () => toggleMedia('audio', peerConnection));
+
+  document.addEventListener('click', playAllPeerStreamsOnStartup)
 }

@@ -1,11 +1,11 @@
 import { Socket, Presence } from 'phoenix';
 
 const handleJoinError = (error) => {
-  const errorNode = document.getElementById('join-error-message');
-  errorNode.innerText = error === 'peer_limit_reached' ?
+  const errorText = error === 'peer_limit_reached' ?
     'Unable to join: Peer limit reached. Try again later' :
     'Unable to join the room';
-  errorNode.classList.remove('hidden');
+
+  alert(errorText);
 }
 
 const getRoomId = () => {

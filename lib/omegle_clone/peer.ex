@@ -124,7 +124,8 @@ defmodule OmegleClone.Peer do
       inbound_tracks: %{video: nil, audio: nil},
       outbound_tracks: %{},
       peer_tracks: %{},
-      pending_peers: MapSet.new()
+      pending_peers: MapSet.new(),
+      peer_ids: peer_ids
     }
 
     {:ok, state, {:continue, {:initial_offer, peer_ids}}}
@@ -348,10 +349,14 @@ defmodule OmegleClone.Peer do
   end
 
   defp add_peer(state, peer) do
+    IO.inspect("=================================================")
+    IO.inspect(state)
+    IO.inspect("=================================================")
     Logger.debug("Peer #{state.id} preparing to receive media from #{peer}")
     tracks = add_outbound_track_pair(state.pc)
 
     put_in(state.outbound_tracks[peer], tracks)
+    |> put_in([:peer_ids], [peer | state.peer_ids])
   end
 
   defp remove_peer(state, peer) do
@@ -364,6 +369,18 @@ defmodule OmegleClone.Peer do
     :ok = PeerConnection.stop_transceiver(state.pc, spec.transceivers.audio)
 
     state
+  end
+
+  defp reset_transceivers(state) do
+    Enum.each(state.peer_ids, fn peer ->
+      {_, state} = pop_in(state.peer_tracks[peer])
+      {spec, state} = pop_in(state.outbound_tracks[peer])
+
+      :ok = PeerConnection.stop_transceiver(state.pc, spec.transceivers.video)
+      :ok = PeerConnection.stop_transceiver(state.pc, spec.transceivers.audio)
+    end)
+
+    setup_transceivers(state.pc, state.peer_ids)
   end
 
   defp subscribe_to_new_tracks(state) do

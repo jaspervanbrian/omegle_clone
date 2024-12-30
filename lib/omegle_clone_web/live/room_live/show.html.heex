@@ -1,11 +1,19 @@
-<div id="room" phx-hook="Room" class="h-full flex flex-row justify-center gap-6 lg:justify-end">
-  <button id="camera-toggle" class="bg-green-500 text-white px-4 py-2 rounded">Turn Off Camera</button>
-  <button id="mic-toggle" class="bg-green-500 text-white px-4 py-2 rounded">Turn Off Mic</button>
-  <p id="join-error-message" class="w-full h-full text-brand/80 font-semibold hidden">
-    Unable to join the room
-  </p>
-  <div id="videoplayer-wrapper" class="w-full h-full grid gap-2 p-2 auto-rows-fr grid-cols-1">
-    <video id="videoplayer-local" class="rounded-xl w-full h-full object-cover" autoplay muted>
-    </video>
+<div id="room" phx-hook="Room" class="h-dvh flex flex-col py-2">
+  <div class="flex flex-1 min-h-0">
+    <div id="videoplayer-wrapper" class="w-full h-full grid gap-2 p-2 auto-rows-fr grid-cols-1 place-items-center">
+      <video id="videoplayer-local" class="rounded-xl w-full h-full object-cover" autoplay muted>
+      </video>
+    </div>
+  </div>
+
+  <div class="flex gap-3 justify-center">
+    <button id="camera-toggle" class="bg-red-500 text-white px-4 py-2 rounded-full">
+      <.icon id="camera-toggle-icon-muted" name="hero-video-camera-slash" />
+      <.icon id="camera-toggle-icon" name="hero-video-camera-solid" class="hidden" />
+    </button>
+    <button id="mic-toggle" class="bg-red-500 text-white px-4 py-2 rounded-full">
+      <.icon id="mic-toggle-icon-muted" name="hero-microphone" />
+      <.icon id="mic-toggle-icon" name="hero-microphone-solid" class="hidden" />
+    </button>
   </div>
 </div>
