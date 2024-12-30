@@ -23,6 +23,6 @@
 <iframe src="https://olafwempe.com/mp3/silence/silence.mp3" type="audio/mp3" allow="autoplay" id="audio" style="display:none"></iframe>
 
 <%# Fallback: Open a dialog to let user interact with the page %>
-<%# <.modal :if={!@flash["joined_room"]} id="joined_room_modal" show={!@flash["joined_room"]}> %>
-<%#   Kindness matters! Please stay respectful and polite during your chats. 😊 %>
-<%# </.modal> %>
+<.modal :if={!@flash["joined_room"]} id="joined_room_modal" show={!@flash["joined_room"]}>
+  Kindness matters! Please stay respectful and polite during your chats. 😊
+</.modal>
