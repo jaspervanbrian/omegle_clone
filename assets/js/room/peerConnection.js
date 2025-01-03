@@ -19,11 +19,14 @@ const updateVideoGrid = () => {
 }
 
 const createPeerVideoEl = (event) => {
-  const trackId = event.track.id;
+  const stream = event.streams[0]
+  const id = stream.id;
   const videoPlayer = document.createElement('video');
 
-  videoPlayer.id = trackId;
-  videoPlayer.srcObject = event.streams[0];
+  document.getElementById(id)?.remove()
+
+  videoPlayer.id = id;
+  videoPlayer.srcObject = stream;
   videoPlayer.autoplay = true;
   videoPlayer.playsInline = true;
   videoPlayer.muted = true;
@@ -39,11 +42,10 @@ const createPeerVideoEl = (event) => {
 
 export const createPeerConnection = async () => {
   const pc = new RTCPeerConnection(pcConfig);
-  document.body.click()
 
   pc.ontrack = (event) => {
+    console.log(event)
     if (event.track.kind == 'video') {
-      document.getElementById(event.track.id)?.remove()
       const videoPlayer = createPeerVideoEl(event);
 
       const videoPlayerWrapper = document.getElementById('videoplayer-wrapper');

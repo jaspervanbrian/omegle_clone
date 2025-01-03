@@ -18,9 +18,9 @@ defmodule OmegleClone.Room do
     GenServer.start_link(__MODULE__, args, opts)
   end
 
-  @spec add_peer(id(), pid()) :: {:ok, Peer.id()} | {:error, :peer_limit_reached}
-  def add_peer(room_id, channel_pid) do
-    GenServer.call(registry_id(room_id), {:add_peer, room_id, channel_pid})
+  @spec add_peer(id(), pid(), String.t()) :: {:ok, Peer.id()} | {:error, :peer_limit_reached}
+  def add_peer(room_id, channel_pid, lv_id) do
+    GenServer.call(registry_id(room_id), {:add_peer, room_id, channel_pid, lv_id})
   end
 
   @spec mark_ready(id(), Peer.id()) :: :ok
@@ -42,14 +42,15 @@ defmodule OmegleClone.Room do
       room_id: room_id,
       peers: %{},
       pending_peers: %{},
-      peer_pid_to_id: %{}
+      peer_pid_to_id: %{},
+      messages: []
     }
 
     {:ok, state}
   end
 
   @impl true
-  def handle_call({:add_peer, _room_id, _channel_pid}, _from, state)
+  def handle_call({:add_peer, _room_id, _channel_pid, _lv_id}, _from, state)
       when map_size(state.pending_peers) + map_size(state.peers) == @peer_limit do
     Logger.warning("Unable to add new peer: reached peer limit (#{@peer_limit})")
     refresh_room_ets_status(state)
@@ -58,7 +59,7 @@ defmodule OmegleClone.Room do
   end
 
   @impl true
-  def handle_call({:add_peer, room_id, channel_pid}, _from, state) do
+  def handle_call({:add_peer, room_id, channel_pid, lv_id}, _from, state) do
     refresh_room_ets_status(state)
 
     id = generate_id()
@@ -68,7 +69,11 @@ defmodule OmegleClone.Room do
     {:ok, pid} = PeerSupervisor.add_peer(id, room_id, channel_pid, peer_ids)
     Process.monitor(pid)
 
-    peer_data = %{pid: pid, channel: channel_pid}
+    peer_data = %{
+      pid: pid,
+      channel: channel_pid,
+      lv_id: lv_id
+    }
 
     state =
       state
@@ -76,6 +81,8 @@ defmodule OmegleClone.Room do
       |> put_in([:peer_pid_to_id, pid], id)
 
     Process.send_after(self(), {:peer_ready_timeout, id}, @peer_ready_timeout_s * 1000)
+
+    LiveUpdates.notify("lv:#{lv_id}", %{messages: state.messages})
 
     {:reply, {:ok, id}, state}
   end

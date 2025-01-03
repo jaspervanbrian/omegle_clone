@@ -1,9 +1,9 @@
 defmodule OmegleClone.LiveUpdates do
-  def subscribe(room) do
-    Phoenix.PubSub.subscribe(OmegleClone.PubSub, room, link: true)
+  def subscribe(topic) do
+    Phoenix.PubSub.subscribe(OmegleClone.PubSub, topic, link: true)
   end
 
-  def notify(room, message) do
-    Phoenix.PubSub.broadcast(OmegleClone.PubSub, room, {room, message})
+  def notify(topic, message) do
+    Phoenix.PubSub.broadcast(OmegleClone.PubSub, topic, {topic, message})
   end
 end

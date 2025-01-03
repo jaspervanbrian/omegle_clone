@@ -3,7 +3,7 @@ defmodule OmegleCloneWeb.RoomChannel do
 
   require Logger
 
-  alias OmegleClone.{Peer, RoomRegistryServer}
+  alias OmegleClone.{Peer, RoomRegistryServer, LiveUpdates}
   alias OmegleCloneWeb.Presence
 
   @spec send_offer(GenServer.server(), String.t()) :: :ok
@@ -28,14 +28,20 @@ defmodule OmegleCloneWeb.RoomChannel do
   end
 
   @impl true
-  def join("room:" <> room_id, payload, socket) do
+  def join("room:" <> room_id, %{"client_id" => client_id} = payload, socket) do
     if authorized?(payload) do
       pid = self()
       send(pid, :after_join)
 
-      case RoomRegistryServer.join_room(room_id, pid) do
+      case RoomRegistryServer.join_room(room_id, pid, client_id) do
         {:ok, peer_id} ->
-          {:ok, assign(socket, %{peer_id: peer_id, room_id: room_id})}
+          {:ok,
+            assign(socket, %{
+              peer_id: peer_id,
+              room_id: room_id,
+              lv_id: client_id
+            })
+          }
 
         {:error, _reason} = error -> error
       end

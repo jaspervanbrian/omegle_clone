@@ -1,4 +1,4 @@
-<div id="room" phx-hook="Room" class="h-dvh flex flex-col py-2">
+<div id="room" phx-hook="Room" class="h-dvh flex flex-col py-2" data-client-id={@client_id}>
   <div class="flex flex-1 min-h-0">
     <div id="videoplayer-wrapper" class="w-full h-full grid gap-2 p-2 auto-rows-fr grid-cols-1 place-items-center">
       <video id="videoplayer-local" class="rounded-xl w-full h-full object-cover" autoplay muted>
@@ -18,11 +18,11 @@
   </div>
 </div>
 
-<%# Hacky solution to enable autoplay when joining a room %>
-<%# https://stackoverflow.com/a/70720034/9376804 %>
+<% # Hacky solution to enable autoplay when joining a room %>
+<% # https://stackoverflow.com/a/70720034/9376804 %>
 <iframe src="https://olafwempe.com/mp3/silence/silence.mp3" type="audio/mp3" allow="autoplay" id="audio" style="display:none"></iframe>
 
-<%# Fallback: Open a dialog to let user interact with the page %>
+<% # Fallback: Open a dialog to let user interact with the page %>
 <.modal :if={!@flash["joined_room"]} id="joined_room_modal" show={!@flash["joined_room"]}>
   Kindness matters! Please stay respectful and polite during your chats. 😊
 </.modal>

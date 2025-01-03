@@ -12,11 +12,15 @@ const getRoomId = () => {
   return window.location.pathname.split('/').filter(Boolean).pop()
 }
 
+const getClientId = () => {
+  return document.getElementById("room").dataset.clientId
+}
+
 export const joinChannel = async ({ peerConnection }) => {
   const socket = new Socket('/socket');
   socket.connect();
 
-  channel = socket.channel(`room:${getRoomId()}`);
+  channel = socket.channel(`room:${getRoomId()}`, { client_id: getClientId() });
 
   channel.on('sdp_offer', async (payload) => {
     try {

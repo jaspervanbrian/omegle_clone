@@ -20,8 +20,8 @@ defmodule OmegleClone.RoomRegistryServer do
     GenServer.call(__MODULE__, {:create_room, room_id})
   end
 
-  def join_room(room_id, channel_pid) do
-    GenServer.call(__MODULE__, {:join_room, room_id, channel_pid})
+  def join_room(room_id, channel_pid, lv_id) do
+    GenServer.call(__MODULE__, {:join_room, room_id, channel_pid, lv_id})
   end
 
   def get_room(room_id) do
@@ -49,7 +49,7 @@ defmodule OmegleClone.RoomRegistryServer do
     end
   end
 
-  def handle_call({:join_room, room_id, channel_pid}, _from, state) do
+  def handle_call({:join_room, room_id, channel_pid, lv_id}, _from, state) do
     case Map.get(state, room_id) do
       nil -> state |> create_room(room_id)
 
@@ -58,7 +58,7 @@ defmodule OmegleClone.RoomRegistryServer do
     end
     |> case do
       {:reply, _, state} ->
-        add_peer(room_id, channel_pid)
+        add_peer(room_id, channel_pid, lv_id)
         |> case do
           {:ok, _peer_id} = result ->
             {:reply, result, state}
@@ -105,8 +105,8 @@ defmodule OmegleClone.RoomRegistryServer do
     end
   end
 
-  defp add_peer(room_id, channel_pid) do
-    case Room.add_peer(room_id, channel_pid) do
+  defp add_peer(room_id, channel_pid, lv_id) do
+    case Room.add_peer(room_id, channel_pid, lv_id) do
       {:ok, _peer_id} = result -> result
 
       {:error, _reason} = error -> error

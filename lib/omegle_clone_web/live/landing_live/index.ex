@@ -45,7 +45,6 @@ defmodule OmegleCloneWeb.LandingLive.Index do
       {:ok, _room_pid} -> {:ok, room_id}
 
       {:error, reason} ->
-        Logger.warning("Error:")
         {:error, %{reason: reason}}
     end
   end
