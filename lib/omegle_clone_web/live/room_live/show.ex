@@ -1,10 +1,13 @@
 defmodule OmegleCloneWeb.RoomLive.Show do
   use OmegleCloneWeb, :live_view
 
-  alias OmegleClone.LiveUpdates
+  alias OmegleClone.{
+    LiveUpdates,
+    Room
+  }
 
   @impl true
-  def mount(_params, session, socket) do
+  def mount(_params, _session, socket) do
     # Assign some unique client id to communicate with the Room Genserver
     client_id = UUID.uuid4()
 
@@ -18,17 +21,56 @@ defmodule OmegleCloneWeb.RoomLive.Show do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  def handle_info({client_id, message}, socket) do
-    IO.inspect("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
-    IO.inspect(client_id)
-    IO.inspect(message)
-    IO.inspect("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+  @impl true
+  def handle_info({"lv:" <> client_id, {:init_lv_connection, message}}, %{assigns: %{client_id: client_id, room_id: room_id}} = socket) do
+    %{
+      peer_id: peer_id,
+      username: username,
+      messages: messages
+    } = message
+
+    LiveUpdates.subscribe("messages:#{room_id}")
+    LiveUpdates.subscribe("room_lv:#{room_id}")
+
+    {:ok, timestamp} = DateTime.now("Etc/UTC")
+
+    Room.new_message(room_id, %{
+      id: UUID.uuid4(),
+      peer_id: peer_id,
+      username: username,
+      body: "HELLO WORLDO",
+      timestamp: timestamp
+    })
+
+    socket =
+      socket
+      |> stream(:messages, messages |> Enum.reverse())
+      |> assign(%{
+        peer_id: peer_id,
+        username: username
+      })
 
     {:noreply, socket}
   end
 
-  defp apply_action(socket, :show, _params) do
+  def handle_info({"messages:" <> room_id, message}, %{assigns: %{room_id: room_id}} = socket) do
+    {:noreply, socket}
+  end
+
+  def handle_info({"room_lv:" <> room_id, message}, %{assigns: %{peer_id: peer_id, room_id: room_id}} = socket) do
+    {:noreply, socket}
+  end
+
+  def handle_info(_message, socket) do
+    {:noreply, socket}
+  end
+
+  defp apply_action(socket, :show, %{"id" => room_id}) do
     socket
-    |> assign(:page_title, "Omegle Clone")
+    |> assign(page_title: "Omegle Clone", room_id: room_id)
+  end
+
+  defp apply_action(socket, _, _params) do
+    socket
   end
 end

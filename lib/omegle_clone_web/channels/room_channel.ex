@@ -3,7 +3,7 @@ defmodule OmegleCloneWeb.RoomChannel do
 
   require Logger
 
-  alias OmegleClone.{Peer, RoomRegistryServer, LiveUpdates}
+  alias OmegleClone.{Peer, RoomRegistryServer}
   alias OmegleCloneWeb.Presence
 
   @spec send_offer(GenServer.server(), String.t()) :: :ok

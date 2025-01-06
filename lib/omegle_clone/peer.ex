@@ -13,7 +13,7 @@ defmodule OmegleClone.Peer do
     SessionDescription
   }
 
-  alias OmegleClone.Room
+  alias OmegleClone.{Room, LiveUpdates}
   alias OmegleCloneWeb.RoomChannel
 
   @type id :: String.t()
@@ -106,7 +106,13 @@ defmodule OmegleClone.Peer do
   def registry_id(id), do: {:via, Registry, {OmegleClone.PeerRegistry, id}}
 
   @impl true
-  def init([id, room_id, channel, peer_ids]) do
+  def init([id, room_id, peer_ids, opts]) do
+    %{
+      username: username,
+      channel: channel,
+      lv_id: lv_id
+    } = opts
+
     Logger.debug("Starting new peer #{id}")
     ice_port_range = Application.fetch_env!(:omegle_clone, :ice_port_range)
     pc_opts = @opts ++ [ice_port_range: ice_port_range]
@@ -119,13 +125,14 @@ defmodule OmegleClone.Peer do
     state = %{
       id: id,
       room_id: room_id,
+      username: username,
       channel: channel,
+      lv_id: lv_id,
       pc: pc,
       inbound_tracks: %{video: nil, audio: nil},
       outbound_tracks: %{},
       peer_tracks: %{},
-      pending_peers: MapSet.new(),
-      peer_ids: peer_ids
+      pending_peers: MapSet.new()
     }
 
     {:ok, state, {:continue, {:initial_offer, peer_ids}}}
@@ -349,14 +356,12 @@ defmodule OmegleClone.Peer do
   end
 
   defp add_peer(state, peer) do
-    IO.inspect("=================================================")
-    IO.inspect(state)
-    IO.inspect("=================================================")
     Logger.debug("Peer #{state.id} preparing to receive media from #{peer}")
     tracks = add_outbound_track_pair(state.pc)
 
+    # LiveUpdates.notify("room_lv:#{state.room_id}", {:add_peer, %{peer_id: peer, stream_id: tracks.stream}})
+
     put_in(state.outbound_tracks[peer], tracks)
-    |> put_in([:peer_ids], [peer | state.peer_ids])
   end
 
   defp remove_peer(state, peer) do
@@ -368,19 +373,9 @@ defmodule OmegleClone.Peer do
     :ok = PeerConnection.stop_transceiver(state.pc, spec.transceivers.video)
     :ok = PeerConnection.stop_transceiver(state.pc, spec.transceivers.audio)
 
+    # LiveUpdates.notify("room_lv:#{state.room_id}", {:remove_peer, peer})
+
     state
-  end
-
-  defp reset_transceivers(state) do
-    Enum.each(state.peer_ids, fn peer ->
-      {_, state} = pop_in(state.peer_tracks[peer])
-      {spec, state} = pop_in(state.outbound_tracks[peer])
-
-      :ok = PeerConnection.stop_transceiver(state.pc, spec.transceivers.video)
-      :ok = PeerConnection.stop_transceiver(state.pc, spec.transceivers.audio)
-    end)
-
-    setup_transceivers(state.pc, state.peer_ids)
   end
 
   defp subscribe_to_new_tracks(state) do

@@ -7,14 +7,20 @@ defmodule OmegleClone.PeerSupervisor do
 
   alias OmegleClone.Peer
 
+  @type opts :: %{
+    username: String.t(),
+    channel: pid(),
+    lv_id: String.t()
+  }
+
   @spec start_link(any()) :: DynamicSupervisor.on_start_child()
   def start_link(arg) do
     DynamicSupervisor.start_link(__MODULE__, arg, name: __MODULE__)
   end
 
-  @spec add_peer(Peer.id(), String.t(), pid(), [String.t()]) :: {:ok, pid()}
-  def add_peer(id, room_id, channel_pid, peer_ids) do
-    peer_opts = [id, room_id, channel_pid, peer_ids]
+  @spec add_peer(Peer.id(), String.t(), [String.t()], opts) :: {:ok, pid()}
+  def add_peer(id, room_id, peer_ids, opts) do
+    peer_opts = [id, room_id, peer_ids, opts]
     gen_server_opts = [name: Peer.registry_id(id)]
 
     child_spec = %{

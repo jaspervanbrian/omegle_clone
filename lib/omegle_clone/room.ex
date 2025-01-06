@@ -5,13 +5,20 @@ defmodule OmegleClone.Room do
 
   require Logger
 
-  alias OmegleClone.{Peer, PeerSupervisor}
+  alias OmegleClone.{Peer, PeerSupervisor, LiveUpdates}
   alias OmegleClone.EtsServer.Cache
 
   @peer_ready_timeout_s 10
   @peer_limit 5
 
   @type id :: String.t()
+  @type message :: %{
+    id: String.t(),
+    peer_id: Peer.id(),
+    username: String.t(),
+    body: String.t(),
+    timestamp: DateTime.t()
+  }
 
   @spec start_link(term(), term()) :: GenServer.on_start()
   def start_link(args, opts) do
@@ -21,6 +28,11 @@ defmodule OmegleClone.Room do
   @spec add_peer(id(), pid(), String.t()) :: {:ok, Peer.id()} | {:error, :peer_limit_reached}
   def add_peer(room_id, channel_pid, lv_id) do
     GenServer.call(registry_id(room_id), {:add_peer, room_id, channel_pid, lv_id})
+  end
+
+  @spec new_message(id(), message()) :: {:noreply, term()}
+  def new_message(room_id, message) do
+    GenServer.cast(registry_id(room_id), {:new_message, message})
   end
 
   @spec mark_ready(id(), Peer.id()) :: :ok
@@ -38,13 +50,7 @@ defmodule OmegleClone.Room do
 
   @impl true
   def init([room_id]) do
-    state = %{
-      room_id: room_id,
-      peers: %{},
-      pending_peers: %{},
-      peer_pid_to_id: %{},
-      messages: []
-    }
+    state = init_state(room_id)
 
     {:ok, state}
   end
@@ -62,18 +68,20 @@ defmodule OmegleClone.Room do
   def handle_call({:add_peer, room_id, channel_pid, lv_id}, _from, state) do
     refresh_room_ets_status(state)
 
-    id = generate_id()
+    %{id: id, username: username} = generate_peer_info()
     Logger.info("New peer #{id} added")
     peer_ids = Map.keys(state.peers)
 
-    {:ok, pid} = PeerSupervisor.add_peer(id, room_id, channel_pid, peer_ids)
+    opts = %{
+      username: username,
+      channel: channel_pid,
+      lv_id: lv_id,
+    }
+
+    {:ok, pid} = PeerSupervisor.add_peer(id, room_id, peer_ids, opts)
     Process.monitor(pid)
 
-    peer_data = %{
-      pid: pid,
-      channel: channel_pid,
-      lv_id: lv_id
-    }
+    peer_data = opts |> Map.put(:pid, pid)
 
     state =
       state
@@ -82,7 +90,12 @@ defmodule OmegleClone.Room do
 
     Process.send_after(self(), {:peer_ready_timeout, id}, @peer_ready_timeout_s * 1000)
 
-    LiveUpdates.notify("lv:#{lv_id}", %{messages: state.messages})
+    LiveUpdates.notify("lv:#{lv_id}", {:init_lv_connection, %{
+      peer_id: id,
+      username: username,
+      messages: state.messages,
+      peer_ids: peer_ids
+    }})
 
     {:reply, {:ok, id}, state}
   end
@@ -107,17 +120,19 @@ defmodule OmegleClone.Room do
   end
 
   @impl true
-  def handle_call({:close_peers, _room_id}, _from, state) do
+  def handle_call({:close_peers, room_id}, _from, %{room_id: room_id} = state) do
     cleanup_all_peers(state)
 
-    state = %{
-      room_id: state.room_id,
-      peers: %{},
-      pending_peers: %{},
-      peer_pid_to_id: %{}
-    }
+    state = init_state(room_id)
 
     {:reply, :ok, state}
+  end
+
+  @impl true
+  def handle_cast({:new_message, message} = event, %{room_id: room_id} = state) do
+    LiveUpdates.notify("messages:#{room_id}", event)
+
+    {:noreply, %{state | messages: [message | state.messages]}}
   end
 
   @impl true
@@ -159,6 +174,23 @@ defmodule OmegleClone.Room do
     refresh_room_ets_status(state)
 
     {:noreply, state}
+  end
+
+  defp init_state(room_id) do
+    %{
+      room_id: room_id,
+      peers: %{},
+      pending_peers: %{},
+      peer_pid_to_id: %{},
+      messages: []
+    }
+  end
+
+  defp generate_peer_info do
+    %{
+      id: generate_id(),
+      username: UniqueNamesGenerator.generate([:adjectives, :colors, :animals])
+    }
   end
 
   defp generate_id, do: 5 |> :crypto.strong_rand_bytes() |> Base.encode16(case: :lower)
