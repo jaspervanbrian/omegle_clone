@@ -47,14 +47,17 @@ defmodule OmegleCloneWeb.RoomLive.Show do
       |> stream(:messages, messages |> Enum.reverse())
       |> assign(%{
         peer_id: peer_id,
-        username: username
+        username: username,
+        unread_messages: 0
       })
 
     {:noreply, socket}
   end
 
-  def handle_info({"messages:" <> room_id, message}, %{assigns: %{room_id: room_id}} = socket) do
-    {:noreply, socket}
+  def handle_info({"messages:" <> room_id, {:new_message, message}}, %{assigns: %{room_id: room_id}} = socket) do
+    unread_messages = socket.assigns.unread_messages + 1
+
+    {:noreply, assign(socket, unread_message: unread_message)}
   end
 
   def handle_info({"room_lv:" <> room_id, message}, %{assigns: %{peer_id: peer_id, room_id: room_id}} = socket) do
