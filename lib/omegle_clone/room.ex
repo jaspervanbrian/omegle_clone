@@ -68,7 +68,7 @@ defmodule OmegleClone.Room do
   def handle_call({:add_peer, room_id, channel_pid, lv_id}, _from, state) do
     refresh_room_ets_status(state)
 
-    %{id: id, username: username} = generate_peer_info()
+    peer_info = %{id: id, username: username} = generate_peer_info()
     Logger.info("New peer #{id} added")
     peer_ids = Map.keys(state.peers)
 
@@ -97,7 +97,7 @@ defmodule OmegleClone.Room do
       peer_ids: peer_ids
     }})
 
-    {:reply, {:ok, id}, state}
+    {:reply, {:ok, peer_info}, state}
   end
 
   @impl true

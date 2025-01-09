@@ -22,6 +22,11 @@ export const joinChannel = async ({ peerConnection }) => {
 
   channel = socket.channel(`room:${getRoomId()}`, { client_id: getClientId() });
 
+  const presence = new Presence(channel);
+  presence.onSync(() => {
+    console.log("Peer count: ", presence.list().length)
+  });
+
   channel.on('sdp_offer', async (payload) => {
     try {
       await peerConnection.setRemoteDescription({ type: 'offer', sdp: payload.body });
@@ -41,9 +46,18 @@ export const joinChannel = async ({ peerConnection }) => {
     }
   });
 
-  const presence = new Presence(channel);
-  presence.onSync(() => {
-    console.log("Peer count: ", presence.list().length)
+  channel.on('add_peer_info', (payload) => {
+    try {
+      const username = presence.state[payload.peer_id]?.metas[0].username
+      const usernameEl = document.createElement('p');
+      usernameEl.id = `username-${payload.peer_id}`;
+      usernameEl.className = `absolute bottom-0 left-0 p-4 rounded-bl-xl text-sm sm:text-xs text-white group-hover:bg-gradient-to-r group-hover:from-gray-800`;
+      usernameEl.innerText = username
+
+      document.getElementById(`stream-${payload.stream_id}`).appendChild(usernameEl)
+    } catch (error) {
+      console.error('Error loading peer info:', error);
+    }
   });
 
   peerConnection.onicecandidate = (event) => {

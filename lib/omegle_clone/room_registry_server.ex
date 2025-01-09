@@ -107,7 +107,7 @@ defmodule OmegleClone.RoomRegistryServer do
 
   defp add_peer(room_id, channel_pid, lv_id) do
     case Room.add_peer(room_id, channel_pid, lv_id) do
-      {:ok, _peer_id} = result -> result
+      {:ok, _peer_info} = result -> result
 
       {:error, _reason} = error -> error
     end

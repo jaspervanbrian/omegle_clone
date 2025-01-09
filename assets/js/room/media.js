@@ -304,8 +304,8 @@ const toggleMedia = async (type, peerConnection) => {
 }
 
 const playAllPeerStreamsOnStartup = async () => {
-  const videoPlayerWrapper = document.getElementById('videoplayer-wrapper');
-  const videoChildren = videoPlayerWrapper.querySelectorAll('.peer-stream');
+  const streamsContainer = document.getElementById('streams-container');
+  const videoChildren = streamsContainer.querySelectorAll('.peer-stream');
 
   for (video of videoChildren) {
     video.muted = false;

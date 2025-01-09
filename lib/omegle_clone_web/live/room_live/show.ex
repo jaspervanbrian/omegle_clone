@@ -30,7 +30,6 @@ defmodule OmegleCloneWeb.RoomLive.Show do
     } = message
 
     LiveUpdates.subscribe("messages:#{room_id}")
-    LiveUpdates.subscribe("room_lv:#{room_id}")
 
     {:ok, timestamp} = DateTime.now("Etc/UTC")
 
@@ -54,14 +53,14 @@ defmodule OmegleCloneWeb.RoomLive.Show do
     {:noreply, socket}
   end
 
+  def handle_info({"messages:" <> room_id, {:new_message, %{peer_id: peer_id}}}, %{assigns: %{peer_id: peer_id, room_id: room_id}} = socket) do
+    {:noreply, socket}
+  end
+
   def handle_info({"messages:" <> room_id, {:new_message, message}}, %{assigns: %{room_id: room_id}} = socket) do
     unread_messages = socket.assigns.unread_messages + 1
 
-    {:noreply, assign(socket, unread_message: unread_message)}
-  end
-
-  def handle_info({"room_lv:" <> room_id, message}, %{assigns: %{peer_id: peer_id, room_id: room_id}} = socket) do
-    {:noreply, socket}
+    {:noreply, assign(socket, unread_messages: unread_messages)}
   end
 
   def handle_info(_message, socket) do

@@ -16,6 +16,11 @@ defmodule OmegleCloneWeb.RoomChannel do
     GenServer.cast(channel, {:candidate, candidate})
   end
 
+  @spec add_peer_info(GenServer.server(), map()) :: :ok
+  def add_peer_info(channel, peer_info) do
+    GenServer.cast(channel, {:add_peer_info, peer_info})
+  end
+
   @spec close(GenServer.server()) :: :ok
   def close(channel) do
     try do
@@ -34,10 +39,13 @@ defmodule OmegleCloneWeb.RoomChannel do
       send(pid, :after_join)
 
       case RoomRegistryServer.join_room(room_id, pid, client_id) do
-        {:ok, peer_id} ->
+        {:ok, peer_info} ->
+          %{id: peer_id, username: username} = peer_info
+
           {:ok,
             assign(socket, %{
               peer_id: peer_id,
+              username: username,
               room_id: room_id,
               lv_id: client_id
             })
@@ -83,8 +91,14 @@ defmodule OmegleCloneWeb.RoomChannel do
   end
 
   @impl true
+  def handle_cast({:add_peer_info, peer_info}, socket) do
+    push(socket, "add_peer_info", peer_info)
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_info(:after_join, socket) do
-    {:ok, _ref} = Presence.track(socket, socket.assigns.peer_id, %{})
+    {:ok, _ref} = Presence.track(socket, socket.assigns.peer_id, %{username: socket.assigns.username})
     push(socket, "presence_state", Presence.list(socket))
     {:noreply, socket}
   end

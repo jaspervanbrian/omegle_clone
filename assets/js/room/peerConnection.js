@@ -5,15 +5,15 @@ const pcConfig = {
 };
 
 const updateVideoGrid = () => {
-  const videoPlayerWrapper = document.getElementById('videoplayer-wrapper');
-  const videoCount = videoPlayerWrapper.children.length;
+  const streamsContainer = document.getElementById('streams-container');
+  const videoCount = streamsContainer.children.length;
   const columns = videoCount <= 1 ? 'grid-cols-1' :
                  videoCount <= 4 ? 'grid-cols-2' :
                  videoCount <= 9 ? 'grid-cols-3' :
                  videoCount <= 16 ? 'grid-cols-4' :
                  'grid-cols-5';
 
-  videoPlayerWrapper.className = `
+  streamsContainer.className = `
     w-full h-full grid gap-2 p-2 auto-rows-fr place-items-center grid-cols-1 sm:${columns}
   `;
 }
@@ -21,9 +21,13 @@ const updateVideoGrid = () => {
 const createPeerVideoEl = (event) => {
   const stream = event.streams[0]
   const id = stream.id;
+  const videoPlayerWrapper = document.createElement('div')
   const videoPlayer = document.createElement('video');
 
   document.getElementById(id)?.remove()
+
+  videoPlayerWrapper.id = `stream-${id}`;
+  videoPlayerWrapper.className = 'group relative w-full h-full';
 
   videoPlayer.id = id;
   videoPlayer.srcObject = stream;
@@ -31,13 +35,11 @@ const createPeerVideoEl = (event) => {
   videoPlayer.playsInline = true;
   videoPlayer.muted = true;
   videoPlayer.className = 'peer-stream rounded-xl w-full h-full object-cover bg-black';
-
   videoPlayer.play().catch(e => console.log('Playback failed:', e));
 
-  const videoPlayerWrapper = document.getElementById('videoplayer-wrapper');
-  videoPlayerWrapper.appendChild(videoPlayer);
+  videoPlayerWrapper.appendChild(videoPlayer)
 
-  return videoPlayer;
+  return videoPlayerWrapper;
 }
 
 export const createPeerConnection = async () => {
@@ -46,16 +48,16 @@ export const createPeerConnection = async () => {
   pc.ontrack = (event) => {
     console.log(event)
     if (event.track.kind == 'video') {
-      const videoPlayer = createPeerVideoEl(event);
+      const videoPlayerWrapper = createPeerVideoEl(event);
 
-      const videoPlayerWrapper = document.getElementById('videoplayer-wrapper');
-      videoPlayerWrapper.appendChild(videoPlayer);
+      const streamsContainer = document.getElementById('streams-container');
+      streamsContainer.appendChild(videoPlayerWrapper);
 
       updateVideoGrid();
 
       event.track.onended = (_) => {
-        const videoPlayerWrapper = document.getElementById('videoplayer-wrapper');
-        videoPlayerWrapper.removeChild(videoPlayer);
+        const streamsContainer = document.getElementById('streams-container');
+        streamsContainer.removeChild(videoPlayerWrapper);
 
         updateVideoGrid();
       };

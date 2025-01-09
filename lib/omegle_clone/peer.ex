@@ -13,7 +13,7 @@ defmodule OmegleClone.Peer do
     SessionDescription
   }
 
-  alias OmegleClone.{Room, LiveUpdates}
+  alias OmegleClone.Room
   alias OmegleCloneWeb.RoomChannel
 
   @type id :: String.t()
@@ -36,6 +36,9 @@ defmodule OmegleClone.Peer do
 
   @type state :: %{
           id: id(),
+          username: String.t(),
+          room_id: Room.id(),
+          lv_id: String.t(),
           channel: pid(),
           pc: pid(),
           # Tracks streamed from the browser to the peer
@@ -88,8 +91,8 @@ defmodule OmegleClone.Peer do
   end
 
   @spec add_subscriber(id(), id(), peer_tracks_spec()) :: :ok
-  def add_subscriber(id, peer, peer_tracks_spec) do
-    GenServer.cast(registry_id(id), {:add_subscriber, peer, peer_tracks_spec})
+  def add_subscriber(id, peer_id, peer_tracks_spec) do
+    GenServer.cast(registry_id(id), {:add_subscriber, peer_id, peer_tracks_spec})
   end
 
   @spec request_keyframe(id()) :: :ok
@@ -193,10 +196,10 @@ defmodule OmegleClone.Peer do
   end
 
   @impl true
-  def handle_cast({:add_subscriber, peer, spec}, state) do
-    Logger.debug("Peer #{state.id} received subscribe request from peer #{peer}")
+  def handle_cast({:add_subscriber, peer_id, peer_tracks_spec}, state) do
+    Logger.debug("Peer #{state.id} received subscribe request from peer #{peer_id}")
 
-    {:noreply, put_in(state.peer_tracks[peer], spec)}
+    {:noreply, put_in(state.peer_tracks[peer_id], peer_tracks_spec)}
   end
 
   @impl true
@@ -359,8 +362,6 @@ defmodule OmegleClone.Peer do
     Logger.debug("Peer #{state.id} preparing to receive media from #{peer}")
     tracks = add_outbound_track_pair(state.pc)
 
-    # LiveUpdates.notify("room_lv:#{state.room_id}", {:add_peer, %{peer_id: peer, stream_id: tracks.stream}})
-
     put_in(state.outbound_tracks[peer], tracks)
   end
 
@@ -372,8 +373,6 @@ defmodule OmegleClone.Peer do
 
     :ok = PeerConnection.stop_transceiver(state.pc, spec.transceivers.video)
     :ok = PeerConnection.stop_transceiver(state.pc, spec.transceivers.audio)
-
-    # LiveUpdates.notify("room_lv:#{state.room_id}", {:remove_peer, peer})
 
     state
   end
@@ -388,6 +387,11 @@ defmodule OmegleClone.Peer do
           |> Map.put(:pc, state.pc)
           |> then(&add_subscriber(peer, state.id, &1))
         end
+
+        :ok = RoomChannel.add_peer_info(state.channel, %{
+          peer_id: peer,
+          stream_id: spec.stream
+        })
 
         {peer, %{spec | subscribed?: true}}
       end)
