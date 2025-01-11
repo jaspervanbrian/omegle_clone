@@ -13,7 +13,13 @@ defmodule OmegleCloneWeb.RoomLive.Show do
 
     LiveUpdates.subscribe("lv:#{client_id}")
 
-    {:ok, assign(socket, client_id: client_id)}
+    {:ok, assign(socket,
+      client_id: client_id,
+      messages_modal_opened: false,
+      peer_id: nil,
+      username: nil,
+      unread_messages: 0
+    )}
   end
 
   @impl true
@@ -65,6 +71,19 @@ defmodule OmegleCloneWeb.RoomLive.Show do
 
   def handle_info(_message, socket) do
     {:noreply, socket}
+  end
+
+  def handle_event("show_messages_modal", _params, socket) do
+    {:noreply, assign(socket,
+      unread_messages: 0,
+      messages_modal_opened: true
+    )}
+  end
+
+  def handle_event("hide_messages_modal", _params, socket) do
+    {:noreply, assign(socket,
+      messages_modal_opened: false
+    )}
   end
 
   defp apply_action(socket, :show, %{"id" => room_id}) do

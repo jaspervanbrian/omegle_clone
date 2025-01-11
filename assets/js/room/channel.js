@@ -50,8 +50,9 @@ export const joinChannel = async ({ peerConnection }) => {
     try {
       const username = presence.state[payload.peer_id]?.metas[0].username
       const usernameEl = document.createElement('p');
+      const backgroundClasses = `group-hover:bg-gradient-to-r group-hover:from-gray-800 bg-gradient-to-r from-gray-800 sm:bg-none`
       usernameEl.id = `username-${payload.peer_id}`;
-      usernameEl.className = `absolute bottom-0 left-0 p-4 rounded-bl-xl text-sm sm:text-xs text-white group-hover:bg-gradient-to-r group-hover:from-gray-800`;
+      usernameEl.className = `absolute bottom-0 left-0 p-2 sm:p-3 rounded-bl-xl text-xs text-white ${backgroundClasses}`;
       usernameEl.innerText = username
 
       document.getElementById(`stream-${payload.stream_id}`).appendChild(usernameEl)

@@ -101,13 +101,13 @@ const updateToggleButtons = (isInitializing = false) => {
     // Set initial state for both toggles
     cameraToggleIconMuted.classList.remove('hidden');
     cameraToggleIcon.classList.add('hidden');
-    cameraToggle.classList.remove('bg-green-500');
-    cameraToggle.classList.add('bg-red-500');
+    cameraToggle.classList.remove('bg-green-500', 'hover:bg-green-800');
+    cameraToggle.classList.add('bg-red-500', 'hover:bg-red-800');
 
     micToggleIconMuted.classList.remove('hidden');
     micToggleIcon.classList.add('hidden');
-    micToggle.classList.remove('bg-green-500');
-    micToggle.classList.add('bg-red-500');
+    micToggle.classList.remove('bg-green-500', 'hover:bg-green-800');
+    micToggle.classList.add('bg-red-500', 'hover:bg-red-800');
 
     return;
   }
@@ -126,7 +126,9 @@ const updateToggleButtons = (isInitializing = false) => {
       cameraToggleIcon.classList.add('hidden');
     }
     cameraToggle.classList.toggle('bg-red-500', !videoTrackEnabled);
+    cameraToggle.classList.toggle('hover:bg-red-800', !videoTrackEnabled);
     cameraToggle.classList.toggle('bg-green-500', videoTrackEnabled);
+    cameraToggle.classList.toggle('hover:bg-green-800', videoTrackEnabled);
 
     const audioTrackEnabled = (audioTrack && audioTrack.enabled && !isDummyStreamAudioActive)
     if (audioTrackEnabled) {
@@ -137,7 +139,9 @@ const updateToggleButtons = (isInitializing = false) => {
       micToggleIcon.classList.add('hidden');
     }
     micToggle.classList.toggle('bg-red-500', !audioTrackEnabled);
+    micToggle.classList.toggle('hover:bg-red-800', !audioTrackEnabled);
     micToggle.classList.toggle('bg-green-500', audioTrackEnabled);
+    micToggle.classList.toggle('hover:bg-green-800', audioTrackEnabled);
   }
 }
 

@@ -9,13 +9,25 @@
   </div>
 
   <div class="flex gap-3 justify-center">
-    <button id="camera-toggle" class="bg-red-500 text-white px-4 py-2 rounded-full" phx-update="ignore">
+    <button id="camera-toggle" class="bg-red-500 text-white px-4 py-3 rounded-full" phx-update="ignore">
       <.icon id="camera-toggle-icon-muted" name="hero-video-camera-slash" />
       <.icon id="camera-toggle-icon" name="hero-video-camera-solid" class="hidden" />
     </button>
-    <button id="mic-toggle" class="bg-red-500 text-white px-4 py-2 rounded-full" phx-update="ignore">
+    <button id="mic-toggle" class="bg-red-500 text-white px-4 py-3 rounded-full" phx-update="ignore">
       <.icon id="mic-toggle-icon-muted" name="hero-microphone" />
       <.icon id="mic-toggle-icon" name="hero-microphone-solid" class="hidden" />
+    </button>
+    <button
+      id="messages-modal-toggle"
+      class="relative px-4 py-3 rounded-full text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+      phx-click={JS.push("show_messages_modal") |> show_modal("messages_modal")}
+    >
+      <.icon name="hero-chat-bubble-oval-left-ellipsis" />
+      <%= if @unread_messages > 0 do %>
+        <div class="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2 dark:border-gray-900">
+          <%= @unread_messages %>
+        </div>
+      <% end %>
     </button>
   </div>
 </div>
@@ -26,5 +38,15 @@
 
 <% # Fallback: Open a dialog to let user interact with the page %>
 <.modal :if={!@flash["joined_room"]} id="joined_room_modal" show={!@flash["joined_room"]}>
-  Kindness matters! Please stay respectful and polite during your chats. 😊
+  <.header>
+    Kindness matters!
+    <:subtitle>Please stay respectful and polite during your chats. 😊</:subtitle>
+  </.header>
+</.modal>
+
+<.modal id="messages_modal" on_cancel={JS.push("hide_messages_modal")}>
+  <.live_component
+    module={OmegleCloneWeb.RoomLive.MessagesComponent}
+    id={:messages_component}
+  />
 </.modal>
