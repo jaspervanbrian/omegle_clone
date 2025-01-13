@@ -55,6 +55,9 @@ defmodule OmegleCloneWeb.RoomLive.Show do
         username: username,
         unread_messages: 0
       })
+      |> push_event("init-lv-connection", %{
+        username: username
+      })
 
     {:noreply, socket}
   end
