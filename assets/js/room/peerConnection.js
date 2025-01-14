@@ -7,8 +7,7 @@ const pcConfig = {
 const updateVideoGrid = () => {
   const streamsContainer = document.getElementById('streams-container');
   const videoCount = streamsContainer.children.length;
-  const columns = videoCount <= 1 ? 'grid-cols-1' :
-                 videoCount <= 4 ? 'grid-cols-2' :
+  const columns = videoCount <= 4 ? 'grid-cols-2' :
                  videoCount <= 9 ? 'grid-cols-3' :
                  videoCount <= 16 ? 'grid-cols-4' :
                  'grid-cols-5';

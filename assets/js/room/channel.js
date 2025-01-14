@@ -25,6 +25,11 @@ export const joinChannel = async ({ peerConnection }) => {
   const presence = new Presence(channel);
   presence.onSync(() => {
     console.log("Peer count: ", presence.list().length)
+    if (1 < presence.list().length) {
+      document.getElementById("waiting-for-peers").classList.add('hidden')
+    } else {
+      document.getElementById("waiting-for-peers").classList.remove('hidden')
+    }
   });
 
   channel.on('sdp_offer', async (payload) => {
