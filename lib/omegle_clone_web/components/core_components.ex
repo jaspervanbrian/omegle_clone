@@ -39,6 +39,9 @@ defmodule OmegleCloneWeb.CoreComponents do
   attr :id, :string, required: true
   attr :show, :boolean, default: false
   attr :on_cancel, JS, default: %JS{}
+  attr :class, :string, default: nil
+  attr :container_class, :string, default: nil
+  attr :content_class, :string, default: nil
   slot :inner_block, required: true
 
   def modal(assigns) do
@@ -60,13 +63,13 @@ defmodule OmegleCloneWeb.CoreComponents do
         tabindex="0"
       >
         <div class="flex min-h-full items-center justify-center">
-          <div class="w-full max-w-3xl p-4 sm:p-6 lg:py-8">
+          <div class={["w-full max-w-3xl p-4 sm:p-6 lg:py-8", @class]}>
             <.focus_wrap
               id={"#{@id}-container"}
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-              class="shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-white p-14 shadow-lg ring-1 transition"
+              class={["shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-white p-14 shadow-lg ring-1 transition", @container_class]}
             >
               <div class="absolute top-6 right-5">
                 <button
@@ -78,7 +81,7 @@ defmodule OmegleCloneWeb.CoreComponents do
                   <.icon name="hero-x-mark-solid" class="h-5 w-5" />
                 </button>
               </div>
-              <div id={"#{@id}-content"}>
+              <div id={"#{@id}-content"} class={@content_class}>
                 <%= render_slot(@inner_block) %>
               </div>
             </.focus_wrap>

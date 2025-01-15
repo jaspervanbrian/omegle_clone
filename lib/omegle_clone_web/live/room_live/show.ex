@@ -1,6 +1,7 @@
 defmodule OmegleCloneWeb.RoomLive.Show do
   use OmegleCloneWeb, :live_view
 
+  alias OmegleCloneWeb.RoomLive.MessagesComponent
   alias OmegleClone.{
     LiveUpdates,
     Room
@@ -18,7 +19,8 @@ defmodule OmegleCloneWeb.RoomLive.Show do
       messages_modal_opened: false,
       peer_id: nil,
       username: nil,
-      unread_messages: 0
+      unread_messages: 0,
+      message: ""
     )}
   end
 
@@ -86,6 +88,18 @@ defmodule OmegleCloneWeb.RoomLive.Show do
   def handle_event("hide_messages_modal", _params, socket) do
     {:noreply, assign(socket,
       messages_modal_opened: false
+    )}
+  end
+
+  def handle_event("message_changed", %{"message" => message}, socket) do
+    {:noreply, assign(socket,
+      message: message
+    )}
+  end
+
+  def handle_event("send_message", %{"message" => message}, socket) do
+    {:noreply, assign(socket,
+      message: message
     )}
   end
 

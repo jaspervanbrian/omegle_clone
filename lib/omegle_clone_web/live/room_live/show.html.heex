@@ -54,9 +54,15 @@
   </.header>
 </.modal>
 
-<.modal id="messages_modal" on_cancel={JS.push("hide_messages_modal")}>
-  <.live_component
-    module={OmegleCloneWeb.RoomLive.MessagesComponent}
+<.modal
+  id="messages_modal"
+  on_cancel={JS.push("hide_messages_modal")}
+  class="lg:max-w-[80%] h-dvh"
+  container_class="px-10 pb-4 h-full"
+  content_class="h-full"
+>
+  <MessagesComponent.component
     id={:messages_component}
+    message={@message}
   />
 </.modal>
