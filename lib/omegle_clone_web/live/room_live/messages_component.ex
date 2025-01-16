@@ -8,7 +8,7 @@ defmodule OmegleCloneWeb.RoomLive.MessagesComponent do
 
       <div class="flex-1 h-full min-h-0 overflow-y-scroll">
         <div class="w-full">
-          <div class="flex gap-2.5 mb-4">
+          <div class="flex gap-2.5">
             <div class="grid w-full">
               <h5 class="text-gray-900 text-sm font-semibold leading-snug pb-1">Shanay cruz</h5>
               <div class="flex w-full items-center group mb-2">
@@ -21,10 +21,10 @@ defmodule OmegleCloneWeb.RoomLive.MessagesComponent do
               </div>
             </div>
           </div>
-          <div class="flex gap-2.5 mb-4 justify-end">
+          <div class="flex gap-2.5">
             <div class="grid w-full">
               <h5 class="text-right text-gray-900 text-sm font-semibold leading-snug pb-1">You</h5>
-              <div class="flex flex-row-reverse w-full items-center group">
+              <div class="flex flex-row-reverse w-full items-center group mb-2">
                 <div class="px-3.5 py-2 bg-indigo-600 rounded items-center gap-3 inline-flex max-w-[80%]">
                   <h5 class="text-white text-sm font-normal leading-snug">Yes, let’s see, send your work here</h5>
                 </div>
