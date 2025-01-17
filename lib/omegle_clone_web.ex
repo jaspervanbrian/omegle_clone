@@ -86,6 +86,7 @@ defmodule OmegleCloneWeb do
       # Core UI components and translation
       import OmegleCloneWeb.CoreComponents
       import OmegleCloneWeb.Gettext
+      import OmegleCloneWeb.Utils
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS

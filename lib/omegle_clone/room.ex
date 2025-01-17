@@ -30,9 +30,9 @@ defmodule OmegleClone.Room do
     GenServer.call(registry_id(room_id), {:add_peer, room_id, channel_pid, lv_id})
   end
 
-  @spec new_message(id(), message()) :: {:noreply, term()}
-  def new_message(room_id, message) do
-    GenServer.cast(registry_id(room_id), {:new_message, message})
+  @spec new_text_message(id(), message()) :: {:noreply, term()}
+  def new_text_message(room_id, message) do
+    GenServer.cast(registry_id(room_id), {:new_text_message, message})
   end
 
   @spec mark_ready(id(), Peer.id()) :: :ok
@@ -129,8 +129,24 @@ defmodule OmegleClone.Room do
   end
 
   @impl true
-  def handle_cast({:new_message, message} = event, %{room_id: room_id} = state) do
-    LiveUpdates.notify("messages:#{room_id}", event)
+  def handle_cast({:new_text_message, %{peer_id: peer_id, username: username, body: body}}, %{room_id: room_id} = state) do
+    timestamp = DateTime.utc_now
+    previous_peer_id =
+      case state.messages do
+        [] -> nil
+        [recent_message | _] -> recent_message.peer_id
+      end
+
+    message = %{
+      id: UUID.uuid4(),
+      peer_id: peer_id,
+      username: username,
+      body: body,
+      timestamp: timestamp,
+      same_user_as_prev: previous_peer_id === peer_id
+    }
+
+    LiveUpdates.notify("messages:#{room_id}", {:new_message, message})
 
     {:noreply, %{state | messages: [message | state.messages]}}
   end

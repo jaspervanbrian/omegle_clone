@@ -8,35 +8,56 @@ defmodule OmegleCloneWeb.RoomLive.MessagesComponent do
 
       <div class="flex-1 h-full min-h-0 overflow-y-scroll">
         <div class="w-full">
-          <div class="flex gap-2.5">
-            <div class="grid w-full">
-              <h5 class="text-gray-900 text-sm font-semibold leading-snug pb-1">Shanay cruz</h5>
-              <div class="flex w-full items-center group mb-2">
-                <div class="px-3.5 py-2 bg-gray-100 rounded justify-start items-center gap-3 inline-flex max-w-[80%]">
-                  <h5 class="text-gray-900 text-sm font-normal leading-snug">Guts, I need a review of work. Are you ready?</h5>
-                </div>
-                <div class="justify-end items-center ml-2.5 hidden group-hover:inline-flex">
-                  <h6 class="text-gray-500 text-xs font-normal leading-4 py-1">05:14 PM</h6>
-                </div>
+          <div class="flex flex-col gap-2.5">
+            <%= if Enum.count(@messages) === 0 do %>
+              <div class="flex w-full justify-center">
+                <p class="mt-3 text-pretty text-md font-medium sm:text-lg">
+                  No messages yet.
+                </p>
               </div>
-            </div>
-          </div>
-          <div class="flex gap-2.5">
-            <div class="grid w-full">
-              <h5 class="text-right text-gray-900 text-sm font-semibold leading-snug pb-1">You</h5>
-              <div class="flex flex-row-reverse w-full items-center group mb-2">
-                <div class="px-3.5 py-2 bg-indigo-600 rounded items-center gap-3 inline-flex max-w-[80%]">
-                  <h5 class="text-white text-sm font-normal leading-snug">Yes, let’s see, send your work here</h5>
-                </div>
-                <div class="justify-start items-center mr-2.5 hidden group-hover:inline-flex">
-                  <h6 class="text-gray-500 text-xs font-normal leading-4 py-1">05:14 PM</h6>
+            <% end %>
+
+            <div class="grid w-full" id="messages" phx-update="stream">
+              <div
+                :for={{dom_id, message} <- @messages}
+                id={dom_id}
+              >
+                <%= if !message.same_user_as_prev do %>
+                  <h5 class={["text-gray-700 text-xs leading-snug pb-1", message.peer_id === @peer_id && "text-right"]}>
+                    {if message.peer_id === @peer_id, do: "You", else: message.username}
+                  </h5>
+                <% end %>
+
+                <div class={["flex w-full items-center group mb-2", message.peer_id === @peer_id && "flex-row-reverse"]}>
+                  <div class={[
+                    "px-3.5 py-2 rounded items-center gap-3 inline-flex max-w-[80%]",
+                    message.peer_id === @peer_id && "bg-indigo-600",
+                    message.peer_id !== @peer_id && "bg-gray-100 justify-start"
+                  ]}>
+                    <h5 class={[
+                      "text-sm font-normal leading-snug",
+                      message.peer_id === @peer_id && "text-white",
+                      message.peer_id !== @peer_id && "text-gray-900"
+                    ]}>
+                      {message.body}
+                    </h5>
+                  </div>
+                  <div class={[
+                    "items-center hidden group-hover:inline-flex",
+                    message.peer_id === @peer_id && "justify-start mr-2.5",
+                    message.peer_id !== @peer_id && "justify-end ml-2.5"
+                  ]}>
+                    <h6 class="text-gray-500 text-xs font-normal leading-4 py-1">
+                      {to_timestamp(message.timestamp)}
+                    </h6>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <.form phx-submit="send_message">
+      <form phx-submit="send_message">
         <div class="w-full pl-3 pr-1 py-1 rounded-3xl border border-gray-200 items-center gap-2 inline-flex justify-between">
           <div class="flex items-center gap-2 w-full">
             <input
@@ -55,7 +76,7 @@ defmodule OmegleCloneWeb.RoomLive.MessagesComponent do
             </button>
           </div>
         </div>
-      </.form>
+      </form>
     </div>
     """
   end

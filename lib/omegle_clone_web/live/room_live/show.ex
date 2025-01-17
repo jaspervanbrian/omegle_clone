@@ -39,16 +39,6 @@ defmodule OmegleCloneWeb.RoomLive.Show do
 
     LiveUpdates.subscribe("messages:#{room_id}")
 
-    {:ok, timestamp} = DateTime.now("Etc/UTC")
-
-    Room.new_message(room_id, %{
-      id: UUID.uuid4(),
-      peer_id: peer_id,
-      username: username,
-      body: "HELLO WORLDO",
-      timestamp: timestamp
-    })
-
     socket =
       socket
       |> stream(:messages, messages |> Enum.reverse())
@@ -64,20 +54,30 @@ defmodule OmegleCloneWeb.RoomLive.Show do
     {:noreply, socket}
   end
 
-  def handle_info({"messages:" <> room_id, {:new_message, %{peer_id: peer_id}}}, %{assigns: %{peer_id: peer_id, room_id: room_id}} = socket) do
+  def handle_info({"messages:" <> room_id, {:new_message, %{peer_id: peer_id} = message}}, %{assigns: %{peer_id: peer_id, room_id: room_id}} = socket) do
+    socket =
+      socket
+      |> assign(unread_messages: 0)
+      |> stream_insert(:messages, message)
+
     {:noreply, socket}
   end
 
   def handle_info({"messages:" <> room_id, {:new_message, message}}, %{assigns: %{room_id: room_id}} = socket) do
     unread_messages = socket.assigns.unread_messages + 1
+    socket =
+      socket
+      |> assign(unread_messages: unread_messages)
+      |> stream_insert(:messages, message)
 
-    {:noreply, assign(socket, unread_messages: unread_messages)}
+    {:noreply, socket}
   end
 
   def handle_info(_message, socket) do
     {:noreply, socket}
   end
 
+  @impl true
   def handle_event("show_messages_modal", _params, socket) do
     {:noreply, assign(socket,
       unread_messages: 0,
@@ -85,22 +85,33 @@ defmodule OmegleCloneWeb.RoomLive.Show do
     )}
   end
 
+  @impl true
   def handle_event("hide_messages_modal", _params, socket) do
     {:noreply, assign(socket,
       messages_modal_opened: false
     )}
   end
 
+  @impl true
   def handle_event("message_changed", %{"message" => message}, socket) do
     {:noreply, assign(socket,
       message: message
     )}
   end
 
-  def handle_event("send_message", %{"message" => message}, socket) do
-    {:noreply, assign(socket,
-      message: message
-    )}
+  @impl true
+  def handle_event("send_message", %{"message" => message}, %{assigns: %{peer_id: peer_id, room_id: room_id, username: username}} = socket) do
+    :ok = Room.new_text_message(room_id, %{
+      peer_id: peer_id,
+      username: username,
+      body: message
+    })
+
+    socket =
+      socket
+      |> assign(message: "")
+
+    {:noreply, socket}
   end
 
   defp apply_action(socket, :show, %{"id" => room_id}) do

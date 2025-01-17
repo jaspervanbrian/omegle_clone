@@ -63,6 +63,8 @@
 >
   <MessagesComponent.component
     id={:messages_component}
+    peer_id={@peer_id}
     message={@message}
+    messages={if assigns[:streams], do: @streams.messages, else: []}
   />
 </.modal>
