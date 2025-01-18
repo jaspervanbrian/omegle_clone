@@ -69,9 +69,7 @@ defmodule OmegleClone.Room do
     refresh_room_ets_status(state)
 
     peer_info = %{id: id, username: username} = generate_peer_info()
-    Logger.info("New peer #{id} added")
     peer_ids = Map.keys(state.peers)
-
     opts = %{
       username: username,
       channel: channel_pid,
@@ -80,6 +78,8 @@ defmodule OmegleClone.Room do
 
     {:ok, pid} = PeerSupervisor.add_peer(id, room_id, peer_ids, opts)
     Process.monitor(pid)
+
+    Logger.info("New peer #{id} added")
 
     peer_data = opts |> Map.put(:pid, pid)
 
@@ -104,10 +104,23 @@ defmodule OmegleClone.Room do
   def handle_call({:mark_ready, id}, _from, state)
       when is_map_key(state.pending_peers, id) do
     Logger.info("Peer #{id} ready")
+
     broadcast({:peer_added, id}, state)
 
     {peer_data, state} = pop_in(state, [:pending_peers, id])
-    state = put_in(state, [:peers, id], peer_data)
+
+    message = %{
+      peer_id: id,
+      username: peer_data.username,
+      body: "#{peer_data.username} has joined the chat.",
+      should_render_username: false
+    }
+    |> create_and_broadcast_message(state.room_id, :peer_info_message)
+
+    state =
+      state
+      |> Map.put(:messages, [message | state.messages])
+      |> put_in([:peers, id], peer_data)
 
     {:reply, :ok, state}
   end
@@ -130,23 +143,23 @@ defmodule OmegleClone.Room do
 
   @impl true
   def handle_cast({:new_text_message, %{peer_id: peer_id, username: username, body: body}}, %{room_id: room_id} = state) do
-    timestamp = DateTime.utc_now
-    previous_peer_id =
+    last_message =
       case state.messages do
         [] -> nil
-        [recent_message | _] -> recent_message.peer_id
+        [recent_message | _] -> recent_message
       end
 
+    should_render_username =
+      last_message && (last_message.peer_id !== peer_id || last_message.type !== :text_message)
+
     message = %{
-      id: UUID.uuid4(),
       peer_id: peer_id,
       username: username,
       body: body,
-      timestamp: timestamp,
-      same_user_as_prev: previous_peer_id === peer_id
+      should_render_username: should_render_username
     }
+    |> create_and_broadcast_message(room_id, :text_message)
 
-    LiveUpdates.notify("messages:#{room_id}", {:new_message, message})
 
     {:noreply, %{state | messages: [message | state.messages]}}
   end
@@ -171,18 +184,9 @@ defmodule OmegleClone.Room do
 
     state =
       cond do
-        is_map_key(state.pending_peers, id) ->
-          {_peer_data, state} = pop_in(state, [:pending_peers, id])
-          :ok = PeerSupervisor.terminate_peer(id)
+        is_map_key(state.pending_peers, id) -> remove_peer(:pending_peers, id, state)
 
-          state
-
-        is_map_key(state.peers, id) ->
-          {_peer_data, state} = pop_in(state, [:peers, id])
-          :ok = PeerSupervisor.terminate_peer(id) 
-          broadcast({:peer_removed, id}, state)
-
-          state
+        is_map_key(state.peers, id) -> remove_peer(:peers, id, state)
 
         true -> state
       end
@@ -245,5 +249,37 @@ defmodule OmegleClone.Room do
           status: status
         })
     end
+  end
+
+  defp create_and_broadcast_message(%{peer_id: peer_id, username: username, should_render_username: should_render_username, body: body}, room_id, type) do
+    %{
+      id: UUID.uuid4(),
+      type: type,
+      peer_id: peer_id,
+      username: username,
+      body: body,
+      timestamp: DateTime.utc_now,
+      should_render_username: should_render_username
+    }
+    |> tap(fn message -> LiveUpdates.notify("messages:#{room_id}", {:new_message, message}) end)
+  end
+
+  defp remove_peer(type, id, state) when type in [:pending_peers, :peers] do
+    {peer_data, state} = pop_in(state, [type, id])
+    :ok = PeerSupervisor.terminate_peer(id)
+
+    if type === :peers do
+      broadcast({:peer_removed, id}, state)
+    end
+
+    message = %{
+      peer_id: id,
+      username: peer_data.username,
+      body: "#{peer_data.username} has left the chat.",
+      should_render_username: false
+    }
+    |> create_and_broadcast_message(state.room_id, :peer_info_message)
+
+    Map.put(state, :messages, [message | state.messages])
   end
 end

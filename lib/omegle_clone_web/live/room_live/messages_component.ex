@@ -22,36 +22,46 @@ defmodule OmegleCloneWeb.RoomLive.MessagesComponent do
                 :for={{dom_id, message} <- @messages}
                 id={dom_id}
               >
-                <%= if !message.same_user_as_prev do %>
-                  <h5 class={["text-gray-700 text-xs leading-snug pb-1", message.peer_id === @peer_id && "text-right"]}>
-                    {if message.peer_id === @peer_id, do: "You", else: message.username}
-                  </h5>
-                <% end %>
+                <%= case message.type do %>
+                  <% :text_message -> %>
+                    <%= if message.should_render_username do %>
+                      <h5 class={["text-gray-700 text-xs leading-snug pb-1", message.peer_id === @peer_id && "text-right"]}>
+                        {if message.peer_id === @peer_id, do: "You (#{message.username})", else: message.username}
+                      </h5>
+                    <% end %>
 
-                <div class={["flex w-full items-center group mb-2", message.peer_id === @peer_id && "flex-row-reverse"]}>
-                  <div class={[
-                    "px-3.5 py-2 rounded items-center gap-3 inline-flex max-w-[80%]",
-                    message.peer_id === @peer_id && "bg-indigo-600",
-                    message.peer_id !== @peer_id && "bg-gray-100 justify-start"
-                  ]}>
-                    <h5 class={[
-                      "text-sm font-normal leading-snug",
-                      message.peer_id === @peer_id && "text-white",
-                      message.peer_id !== @peer_id && "text-gray-900"
-                    ]}>
-                      {message.body}
-                    </h5>
-                  </div>
-                  <div class={[
-                    "items-center hidden group-hover:inline-flex",
-                    message.peer_id === @peer_id && "justify-start mr-2.5",
-                    message.peer_id !== @peer_id && "justify-end ml-2.5"
-                  ]}>
-                    <h6 class="text-gray-500 text-xs font-normal leading-4 py-1">
-                      {to_timestamp(message.timestamp)}
-                    </h6>
-                  </div>
-                </div>
+                    <div class={["flex w-full items-center group mb-2", message.peer_id === @peer_id && "flex-row-reverse"]}>
+                      <div class={[
+                        "px-3.5 py-2 rounded items-center gap-3 inline-flex max-w-[80%]",
+                        message.peer_id === @peer_id && "bg-indigo-600",
+                        message.peer_id !== @peer_id && "bg-gray-100 justify-start"
+                      ]}>
+                        <h5 class={[
+                          "text-sm font-normal leading-snug",
+                          message.peer_id === @peer_id && "text-white",
+                          message.peer_id !== @peer_id && "text-gray-900"
+                        ]}>
+                          {message.body}
+                        </h5>
+                      </div>
+                      <div class={[
+                        "items-center hidden group-hover:inline-flex",
+                        message.peer_id === @peer_id && "justify-start mr-2.5",
+                        message.peer_id !== @peer_id && "justify-end ml-2.5"
+                      ]}>
+                        <h6 class="text-gray-500 text-xs font-normal leading-4 py-1">
+                          {to_timestamp(message.timestamp)}
+                        </h6>
+                      </div>
+                    </div>
+
+                  <% :peer_info_message -> %>
+                    <div class="flex w-full justify-center mb-2">
+                      <p class="text-gray-400 text-pretty text-sm sm:text-md">
+                        {message.body}
+                      </p>
+                    </div>
+                <% end %>
               </div>
             </div>
           </div>
