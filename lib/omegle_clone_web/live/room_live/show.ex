@@ -59,6 +59,7 @@ defmodule OmegleCloneWeb.RoomLive.Show do
       socket
       |> assign(unread_messages: 0)
       |> stream_insert(:messages, message)
+      |> push_event("new-message", %{message_id: message.id, scroll: true})
 
     {:noreply, socket}
   end
@@ -69,6 +70,7 @@ defmodule OmegleCloneWeb.RoomLive.Show do
       socket
       |> assign(unread_messages: unread_messages)
       |> stream_insert(:messages, message)
+      |> push_event("new-message", %{message_id: message.id})
 
     {:noreply, socket}
   end

@@ -1,4 +1,4 @@
-import { init } from './init'
+import { initListeners } from './initListeners'
 import { joinChannel } from './channel'
 import { createPeerConnection } from './peerConnection'
 import { setupMedia } from './media'
@@ -6,7 +6,7 @@ import { setupMedia } from './media'
 export const Room = {
   async mounted() {
     try {
-      init()
+      initListeners()
 
       // Create peer connection first
       const peerConnection = await createPeerConnection();

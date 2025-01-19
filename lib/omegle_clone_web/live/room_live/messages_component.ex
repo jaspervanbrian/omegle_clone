@@ -6,7 +6,7 @@ defmodule OmegleCloneWeb.RoomLive.MessagesComponent do
     <div class="flex flex-col flex-1 min-h-0 w-full h-full">
       <.header class="mb-4 border-b border-gray-300">Messages</.header>
 
-      <div class="flex-1 h-full min-h-0 overflow-y-scroll">
+      <div id="messages-container" class="relative flex-1 h-full min-h-0 overflow-y-scroll">
         <div class="w-full">
           <div class="flex flex-col gap-2.5">
             <%= if Enum.count(@messages) === 0 do %>
@@ -32,9 +32,9 @@ defmodule OmegleCloneWeb.RoomLive.MessagesComponent do
 
                     <div class={["flex w-full items-center group mb-2", message.peer_id === @peer_id && "flex-row-reverse"]}>
                       <div class={[
-                        "px-3.5 py-2 rounded items-center gap-3 inline-flex max-w-[80%]",
-                        message.peer_id === @peer_id && "bg-indigo-600",
-                        message.peer_id !== @peer_id && "bg-gray-100 justify-start"
+                        "px-3.5 py-2 rounded items-center gap-3 inline-flex focus:outline-none focus:ring-4 max-w-[80%]",
+                        message.peer_id === @peer_id && "bg-purple-700 hover:bg-purple-800 focus:ring-purple-300 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900",
+                        message.peer_id !== @peer_id && "justify-start bg-gray-100 hover:bg-gray-200 focus:ring-gray-300 dark:bg-gray-100 dark:hover:bg-gray-200 dark:focus:ring-gray-300" 
                       ]}>
                         <h5 class={[
                           "text-sm font-normal leading-snug",
@@ -66,6 +66,16 @@ defmodule OmegleCloneWeb.RoomLive.MessagesComponent do
             </div>
           </div>
         </div>
+
+        <div id="unread-messages-button-container" class="sticky flex bottom-3 w-full justify-center hidden" phx-update="ignore">
+          <button
+            id="unread-messages-button"
+            class="items-center flex px-2 py-1 focus:outline-none bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 rounded-full shadow"
+          >
+            <.icon name="hero-arrow-down" class="text-white"/>
+            <h3 class="text-white text-xs font-semibold leading-4 px-2"><span id="unread-messages">0</span> unread messages</h3>
+          </button>
+        </div>
       </div>
       <form phx-submit="send_message">
         <div class="w-full pl-3 pr-1 py-1 rounded-3xl border border-gray-200 items-center gap-2 inline-flex justify-between">
@@ -80,7 +90,7 @@ defmodule OmegleCloneWeb.RoomLive.MessagesComponent do
             />
           </div>
           <div class="flex items-center gap-2">
-            <button class="items-center flex px-3 py-2 bg-indigo-600 rounded-full shadow">
+            <button class="items-center flex px-3 py-2 focus:outline-none bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 rounded-full shadow">
               <.icon name="hero-paper-airplane" class="text-white"/>
               <h3 class="text-white text-xs font-semibold leading-4 px-2">Send</h3>
             </button>
