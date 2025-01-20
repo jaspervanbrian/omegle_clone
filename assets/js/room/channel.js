@@ -1,4 +1,7 @@
 import { Socket, Presence } from 'phoenix';
+import { initMediaButtonsListeners } from './interactionListeners'
+import { getMediaStatus } from './media'
+import { addPeerMediaInfo, updatePeersInfo }  from './peerConnection'
 
 const handleJoinError = (error) => {
   const errorText = error === 'peer_limit_reached' ?
@@ -20,13 +23,20 @@ export const joinChannel = async ({ peerConnection }) => {
   const socket = new Socket('/socket');
   socket.connect();
 
-  channel = socket.channel(`room:${getRoomId()}`, { client_id: getClientId() });
+  channel = socket.channel(`room:${getRoomId()}`, {
+    client_id: getClientId(),
+    ...getMediaStatus()
+  });
+
+  initMediaButtonsListeners(peerConnection, channel)
 
   const presence = new Presence(channel);
   presence.onSync(() => {
     console.log("Peer count: ", presence.list().length)
+    console.log("Presence:", presence.state)
     if (1 < presence.list().length) {
       document.getElementById("waiting-for-peers").classList.add('hidden')
+      updatePeersInfo(presence.state)
     } else {
       document.getElementById("waiting-for-peers").classList.remove('hidden')
     }
@@ -53,14 +63,7 @@ export const joinChannel = async ({ peerConnection }) => {
 
   channel.on('add_peer_info', (payload) => {
     try {
-      const username = presence.state[payload.peer_id]?.metas[0].username
-      const usernameEl = document.createElement('p');
-      const backgroundClasses = `group-hover:bg-gradient-to-r group-hover:from-gray-800 bg-gradient-to-r from-gray-800 sm:bg-none`
-      usernameEl.id = `username-${payload.peer_id}`;
-      usernameEl.className = `absolute bottom-0 left-0 p-2 sm:p-3 rounded-bl-xl text-xs text-white ${backgroundClasses}`;
-      usernameEl.innerText = username
-
-      document.getElementById(`stream-${payload.stream_id}`).appendChild(usernameEl)
+      addPeerMediaInfo(presence, payload)
     } catch (error) {
       console.error('Error loading peer info:', error);
     }

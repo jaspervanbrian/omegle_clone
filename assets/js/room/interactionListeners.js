@@ -1,3 +1,6 @@
+import { toggleMedia } from './media'
+import { playAllPeerStreamsOnStartup } from './peerConnection'
+
 let shouldModalScrollMessagesToBottom = true
 
 const initLvConnection = (event) => {
@@ -72,10 +75,20 @@ const initializeUnreadMessagesButtonListener = () => {
 }
 
 export const initListeners = () => {
+  window.addEventListener('click', playAllPeerStreamsOnStartup)
   window.addEventListener('phx:init-lv-connection', initLvConnection)
   window.addEventListener('phx:new-message', scrollOnNewMessage)
   window.addEventListener('messages_modal:open', onModalOpen)
 
   initializeMessageContainerScrollListener()
   initializeUnreadMessagesButtonListener()
+}
+
+export const initMediaButtonsListeners = (peerConnection, channel) => {
+  const cameraToggle = document.getElementById('camera-toggle');
+  const micToggle = document.getElementById('mic-toggle');
+
+  // Set up toggle button listeners
+  cameraToggle.addEventListener('click', () => toggleMedia('video', peerConnection, channel));
+  micToggle.addEventListener('click', () => toggleMedia('audio', peerConnection, channel));
 }

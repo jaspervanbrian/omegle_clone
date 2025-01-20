@@ -1,4 +1,4 @@
-import { initListeners } from './initListeners'
+import { initListeners } from './interactionListeners'
 import { joinChannel } from './channel'
 import { createPeerConnection } from './peerConnection'
 import { setupMedia } from './media'

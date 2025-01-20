@@ -38,33 +38,7 @@ const createDummyStream = () => {
   ctx.fillStyle = 'black';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Draw camera icon
   ctx.save();
-  ctx.translate(canvas.width / 2, canvas.height / 2); // Center the icon
-
-  // Set styles for icon
-  ctx.strokeStyle = 'white';
-  ctx.fillStyle = 'white';
-  ctx.lineWidth = 3;
-
-  // Draw camera body
-  const scale = 4; // Adjust size of icon
-  ctx.beginPath();
-  ctx.roundRect(-15 * scale, -10 * scale, 30 * scale, 20 * scale, 2 * scale);
-  ctx.stroke();
-
-  // Draw camera lens
-  ctx.beginPath();
-  ctx.arc(0, 0, 8 * scale, 0, Math.PI * 2);
-  ctx.stroke();
-
-  // Draw diagonal line (slash)
-  ctx.beginPath();
-  ctx.moveTo(-20 * scale, -20 * scale);
-  ctx.lineTo(20 * scale, 20 * scale);
-  ctx.stroke();
-
-  ctx.restore();
 
   const videoStream = canvas.captureStream(1);
   const videoTrack = videoStream.getVideoTracks()[0];
@@ -97,6 +71,9 @@ const updateToggleButtons = (isInitializing = false) => {
   const micToggleIconMuted = document.getElementById('mic-toggle-icon-muted');
   const micToggleIcon = document.getElementById('mic-toggle-icon');
 
+  const cameraStatus = document.getElementById('camera-status');
+  const micStatusIcon = document.getElementById('mic-status-icon');
+
   if (isInitializing) {
     // Set initial state for both toggles
     cameraToggleIconMuted.classList.remove('hidden');
@@ -108,6 +85,10 @@ const updateToggleButtons = (isInitializing = false) => {
     micToggleIcon.classList.add('hidden');
     micToggle.classList.remove('bg-green-500', 'hover:bg-green-800');
     micToggle.classList.add('bg-red-500', 'hover:bg-red-800');
+
+    cameraStatus.classList.remove('hidden')
+    micStatusIcon.classList.add('bg-red-500')
+    micStatusIcon.classList.remove('bg-green-500')
 
     return;
   }
@@ -121,9 +102,11 @@ const updateToggleButtons = (isInitializing = false) => {
     if (videoTrackEnabled) {
       cameraToggleIconMuted.classList.add('hidden');
       cameraToggleIcon.classList.remove('hidden');
+      cameraStatus.classList.add('hidden')
     } else {
       cameraToggleIconMuted.classList.remove('hidden');
       cameraToggleIcon.classList.add('hidden');
+      cameraStatus.classList.remove('hidden')
     }
     cameraToggle.classList.toggle('bg-red-500', !videoTrackEnabled);
     cameraToggle.classList.toggle('hover:bg-red-800', !videoTrackEnabled);
@@ -142,6 +125,9 @@ const updateToggleButtons = (isInitializing = false) => {
     micToggle.classList.toggle('hover:bg-red-800', !audioTrackEnabled);
     micToggle.classList.toggle('bg-green-500', audioTrackEnabled);
     micToggle.classList.toggle('hover:bg-green-800', audioTrackEnabled);
+
+    micStatusIcon.classList.toggle('bg-red-500', !audioTrackEnabled)
+    micStatusIcon.classList.toggle('bg-green-500', audioTrackEnabled)
   }
 }
 
@@ -182,7 +168,7 @@ const removeAudioTracks = () => {
   });
 }
 
-const toggleVideoMode = async (peerConnection) => {
+const toggleVideoMode = async (peerConnection, channel) => {
   const localVideoPlayer = document.getElementById('videoplayer-local');
   const hasVideoTrack = localStream?.getVideoTracks().length > 0;
 
@@ -220,9 +206,10 @@ const toggleVideoMode = async (peerConnection) => {
         peerConnection.addTrack(videoTrack, localStream);
       }
 
-      updateToggleButtons();
+      channel.push('media_update', { video: true, audio: !isDummyStreamAudioActive });
     } catch (error) {
       isDummyStreamVideoActive = true;
+      channel.push('media_update', { video: false, audio: !isDummyStreamAudioActive });
       console.error('Camera access error:', error);
       alert('Could not access camera. Please check your permissions.');
     }
@@ -242,10 +229,12 @@ const toggleVideoMode = async (peerConnection) => {
     if (localVideoPlayer) {
       localVideoPlayer.srcObject = dummyStream;
     }
+
+    channel.push('media_update', { video: false, audio: !isDummyStreamAudioActive });
   }
 }
 
-const toggleAudioMode = async (peerConnection) => {
+const toggleAudioMode = async (peerConnection, channel) => {
   const hasAudioTrack = localStream?.getAudioTracks().length > 0;
 
   if (!hasAudioTrack || isDummyStreamAudioActive) {
@@ -278,8 +267,11 @@ const toggleAudioMode = async (peerConnection) => {
       } else {
         peerConnection.addTrack(audioTrack, localStream);
       }
+
+      channel.push('media_update', { video: !isDummyStreamVideoActive, audio: true });
     } catch (error) {
       isDummyStreamAudioActive = true;
+      channel.push('media_update', { video: !isDummyStreamVideoActive, audio: false });
       console.error('Microphone access error:', error);
       alert('Could not access microphone. Please check your permissions.');
     }
@@ -294,39 +286,29 @@ const toggleAudioMode = async (peerConnection) => {
     }
 
     removeAudioTracks();
+
+    channel.push('media_update', { video: !isDummyStreamVideoActive, audio: false });
   }
 }
 
-const toggleMedia = async (type, peerConnection) => {
+export const toggleMedia = async (type, peerConnection, channel) => {
   if (type === 'video') {
-    await toggleVideoMode(peerConnection)
+    await toggleVideoMode(peerConnection, channel)
   } else { // Audio toggle
-    await toggleAudioMode(peerConnection)
+    await toggleAudioMode(peerConnection, channel)
   }
 
   updateToggleButtons();
 }
 
-const playAllPeerStreamsOnStartup = async () => {
-  const streamsContainer = document.getElementById('streams-container');
-  const videoChildren = streamsContainer.querySelectorAll('.peer-stream');
-
-  for (video of videoChildren) {
-    video.muted = false;
-    await video.play();
+export const getMediaStatus = () => {
+  return {
+    video: !isDummyStreamVideoActive,
+    audio: !isDummyStreamAudioActive
   }
 }
 
 export const setupMedia = async ({ peerConnection }) => {
-  const cameraToggle = document.getElementById('camera-toggle');
-  const micToggle = document.getElementById('mic-toggle');
-
   // Initialize dummy stream before joining channel
   await initializeDummyStream(peerConnection);
-
-  // Set up toggle button listeners
-  cameraToggle.addEventListener('click', () => toggleMedia('video', peerConnection));
-  micToggle.addEventListener('click', () => toggleMedia('audio', peerConnection));
-
-  document.addEventListener('click', playAllPeerStreamsOnStartup)
 }

@@ -33,8 +33,14 @@ defmodule OmegleCloneWeb.RoomChannel do
   end
 
   @impl true
-  def join("room:" <> room_id, %{"client_id" => client_id} = payload, socket) do
+  def join("room:" <> room_id, payload, socket) do
     if authorized?(payload) do
+      %{
+        "client_id" => client_id,
+        "video" => video_active,
+        "audio" => audio_active,
+      } = payload
+
       pid = self()
       send(pid, :after_join)
 
@@ -47,7 +53,9 @@ defmodule OmegleCloneWeb.RoomChannel do
               peer_id: peer_id,
               username: username,
               room_id: room_id,
-              lv_id: client_id
+              lv_id: client_id,
+              video_active: video_active,
+              audio_active: audio_active
             })
           }
 
@@ -79,6 +87,22 @@ defmodule OmegleCloneWeb.RoomChannel do
   end
 
   @impl true
+  def handle_in("media_update", %{"video" => video_active, "audio" => audio_active}, socket) do
+    {:ok, _ref} = Presence.update(socket, socket.assigns.peer_id, %{
+      username: socket.assigns.username,
+      video_active: video_active,
+      audio_active: audio_active
+    })
+    IO.inspect("==============")
+    IO.inspect(Presence.list(socket))
+    IO.inspect("==============")
+
+    push(socket, "presence_state", Presence.list(socket))
+
+    {:noreply, assign(socket, video_active: video_active, audio_active: audio_active) }
+  end
+
+  @impl true
   def handle_cast({:offer, sdp_offer}, socket) do
     push(socket, "sdp_offer", %{"body" => sdp_offer})
     {:noreply, socket}
@@ -98,7 +122,12 @@ defmodule OmegleCloneWeb.RoomChannel do
 
   @impl true
   def handle_info(:after_join, socket) do
-    {:ok, _ref} = Presence.track(socket, socket.assigns.peer_id, %{username: socket.assigns.username})
+    {:ok, _ref} = Presence.track(socket, socket.assigns.peer_id, %{
+      username: socket.assigns.username,
+      video_active: socket.assigns.video_active,
+      audio_active: socket.assigns.audio_active
+    })
+
     push(socket, "presence_state", Presence.list(socket))
     {:noreply, socket}
   end
