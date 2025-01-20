@@ -32,7 +32,7 @@ const createPeerVideoEl = (event) => {
   videoPlayer.srcObject = stream;
   videoPlayer.autoplay = true;
   videoPlayer.playsInline = true;
-  videoPlayer.muted = true;
+  videoPlayer.muted = false;
   videoPlayer.className = 'peer-stream rounded-xl w-full h-full object-cover bg-black';
   videoPlayer.play().catch(e => console.log('Playback failed:', e));
 

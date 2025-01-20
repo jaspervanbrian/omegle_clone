@@ -38,9 +38,14 @@ const createDummyStream = () => {
   ctx.fillStyle = 'black';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  // Keep "drawing" to the canvas for the audio to work.
+  // More on here: https://stackoverflow.com/a/65842195/9376804
+  setInterval(() => ctx.clearRect(0,0,1,1), 500);
+  ctx.clearRect(0,0,1,1);
+
   ctx.save();
 
-  const videoStream = canvas.captureStream(1);
+  const videoStream = canvas.captureStream();
   const videoTrack = videoStream.getVideoTracks()[0];
   if (videoTrack) {
     Object.defineProperty(videoTrack, 'label', { value: 'Placeholder Camera' });
@@ -51,9 +56,7 @@ const createDummyStream = () => {
   const audioTrack = audioStream.getAudioTracks()[0];
 
   // Combine video and audio tracks into one stream
-  const combinedStream = new MediaStream();
-  combinedStream.addTrack(videoTrack);
-  combinedStream.addTrack(audioTrack);
+  const combinedStream = new MediaStream([ videoTrack, audioTrack ]);
 
   isDummyStreamVideoActive = true;
   isDummyStreamAudioActive = true;

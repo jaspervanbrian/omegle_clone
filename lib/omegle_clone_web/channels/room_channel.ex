@@ -93,9 +93,6 @@ defmodule OmegleCloneWeb.RoomChannel do
       video_active: video_active,
       audio_active: audio_active
     })
-    IO.inspect("==============")
-    IO.inspect(Presence.list(socket))
-    IO.inspect("==============")
 
     push(socket, "presence_state", Presence.list(socket))
 
