@@ -124,4 +124,12 @@ defmodule OmegleCloneWeb.RoomLive.Show do
   defp apply_action(socket, _, _params) do
     socket
   end
+
+  defp get_random_available_room do
+    Cache.match_object(:active_rooms, {:_, %{status: "available"}})
+    |> case do
+      [] -> nil
+      active_rooms -> Enum.random(active_rooms)
+    end
+  end
 end
