@@ -2,6 +2,7 @@ defmodule OmegleCloneWeb.RoomLive.Show do
   use OmegleCloneWeb, :live_view
 
   alias OmegleCloneWeb.RoomLive.MessagesComponent
+  alias OmegleClone.EtsServer.Cache
   alias OmegleClone.{
     LiveUpdates,
     Room
@@ -116,6 +117,28 @@ defmodule OmegleCloneWeb.RoomLive.Show do
     {:noreply, socket}
   end
 
+  @impl true
+  def handle_event("find_other_rooms", _, %{assigns: %{room_id: current_room_id}} = socket) do
+    LiveUpdates.unsubscribe("messages:#{current_room_id}")
+
+    get_random_available_room(current_room_id)
+    |> case do
+      {room_id, _} -> {:ok, room_id}
+      _ -> create_random_room_and_join()
+    end
+    |> case do
+      {:ok, room_id} ->
+        {:noreply,
+          socket
+          |> put_flash(:joined_room, "interacted")
+          |> push_patch(to: ~p"/room/#{room_id}", replace: true)
+        }
+
+      _ ->
+        {:noreply, socket |> put_flash(:error, "Error on joining a chat!")}
+    end
+  end
+
   defp apply_action(socket, :show, %{"id" => room_id}) do
     socket
     |> assign(page_title: "Omegle Clone", room_id: room_id)
@@ -123,13 +146,5 @@ defmodule OmegleCloneWeb.RoomLive.Show do
 
   defp apply_action(socket, _, _params) do
     socket
-  end
-
-  defp get_random_available_room do
-    Cache.match_object(:active_rooms, {:_, %{status: "available"}})
-    |> case do
-      [] -> nil
-      active_rooms -> Enum.random(active_rooms)
-    end
   end
 end

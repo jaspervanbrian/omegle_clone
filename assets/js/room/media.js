@@ -157,6 +157,46 @@ const initializeDummyStream = async (peerConnection) => {
   updateToggleButtons(true);
 }
 
+const reInitializePeerConnection = async (peerConnection) => {
+  if (isDummyStreamVideoActive) {
+    const dummyVideoTrack = dummyStream.getVideoTracks()[0];
+    const videoSender = peerConnection.getSenders().find(s => s.track?.kind === 'video');
+
+    if (videoSender) {
+      await videoSender.replaceTrack(dummyVideoTrack);
+    }
+  } else {
+    const videoTrack = localStream.getVideoTracks()[0];
+
+    const videoSender = peerConnection.getSenders().find(s => s.track?.kind === 'video');
+
+    if (videoSender) {
+      await videoSender.replaceTrack(videoTrack);
+    } else {
+      peerConnection.addTrack(videoTrack, localStream);
+    }
+  }
+
+  if (isDummyStreamAudioActive) {
+    const dummyAudioTrack = dummyStream.getAudioTracks()[0];
+    const audioSender = peerConnection.getSenders().find(s => s.track?.kind === 'audio');
+
+    if (audioSender) {
+      await audioSender.replaceTrack(dummyAudioTrack);
+    }
+  } else {
+    const audioTrack = localStream.getAudioTracks()[0];
+
+    const audioSender = peerConnection.getSenders().find(s => s.track?.kind === 'audio');
+
+    if (audioSender) {
+      await audioSender.replaceTrack(audioTrack);
+    } else {
+      peerConnection.addTrack(audioTrack, localStream);
+    }
+  }
+}
+
 const removeVideoTracks = () => {
   localStream.getVideoTracks().forEach(track => {
     track.stop();
@@ -312,6 +352,10 @@ export const getMediaStatus = () => {
 }
 
 export const setupMedia = async ({ peerConnection }) => {
-  // Initialize dummy stream before joining channel
-  await initializeDummyStream(peerConnection);
+  if (localStream) {
+    await reInitializePeerConnection(peerConnection)
+  } else {
+    // Initialize dummy stream before joining channel
+    await initializeDummyStream(peerConnection);
+  }
 }

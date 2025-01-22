@@ -1,7 +1,7 @@
 defmodule OmegleCloneWeb.LandingLive.Index do
   use OmegleCloneWeb, :live_view
 
-  alias OmegleClone.EtsServer.Cache
+  import OmegleCloneWeb.RoomManagement
 
   @impl true
   def mount(_params, _session, socket) do
@@ -36,24 +36,5 @@ defmodule OmegleCloneWeb.LandingLive.Index do
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, "Omegle Clone")
-  end
-
-  defp create_random_room_and_join do
-    room_id = UUID.uuid4()
-
-    case OmegleClone.RoomRegistryServer.create_room(room_id) do
-      {:ok, _room_pid} -> {:ok, room_id}
-
-      {:error, reason} ->
-        {:error, %{reason: reason}}
-    end
-  end
-
-  defp get_random_available_room do
-    Cache.match_object(:active_rooms, {:_, %{status: "available"}})
-    |> case do
-      [] -> nil
-      active_rooms -> Enum.random(active_rooms)
-    end
   end
 end
