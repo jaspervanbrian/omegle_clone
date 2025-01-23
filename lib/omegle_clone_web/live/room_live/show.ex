@@ -1,8 +1,9 @@
 defmodule OmegleCloneWeb.RoomLive.Show do
   use OmegleCloneWeb, :live_view
 
+  import OmegleCloneWeb.RoomManagement
+
   alias OmegleCloneWeb.RoomLive.MessagesComponent
-  alias OmegleClone.EtsServer.Cache
   alias OmegleClone.{
     LiveUpdates,
     Room

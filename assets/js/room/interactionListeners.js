@@ -74,7 +74,7 @@ const initializeUnreadMessagesButtonListener = () => {
   unreadMessagesButton.addEventListener('click', scrollDownMessageContainer);
 }
 
-export const initListeners = () => {
+export const initListeners = ({ setupConnection }) => {
   window.addEventListener('click', playAllPeerStreamsOnStartup)
   window.addEventListener('phx:init-lv-connection', initLvConnection)
   window.addEventListener('phx:new-message', scrollOnNewMessage)
