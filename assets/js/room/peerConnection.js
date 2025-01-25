@@ -1,8 +1,23 @@
+let pc = null;
+
 const pcConfig = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" },
   ]
 };
+
+const closeExistingPeerConnection = () => {
+  if (pc) {
+    // Remove all event listeners
+    pc.ontrack = null;
+    pc.onicecandidate = null;
+
+    // Close the connection
+    pc.close();
+
+    pc = null
+  }
+}
 
 const updateVideoGrid = () => {
   const streamsContainer = document.getElementById('streams-container');
@@ -107,7 +122,9 @@ export const updatePeersInfo = (presenceState) => {
 }
 
 export const createPeerConnection = async () => {
-  const pc = new RTCPeerConnection(pcConfig);
+  closeExistingPeerConnection()
+
+  pc = new RTCPeerConnection(pcConfig);
 
   pc.ontrack = (event) => {
     console.log(event)

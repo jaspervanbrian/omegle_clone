@@ -3,6 +3,9 @@ import { initMediaButtonsListeners } from './interactionListeners'
 import { getMediaStatus } from './media'
 import { addPeerMediaInfo, updatePeersInfo }  from './peerConnection'
 
+let channel = null;
+let mediaTogglers = null;
+
 const handleJoinError = (error) => {
   const errorText = error === 'peer_limit_reached' ?
     'Unable to join: Peer limit reached. Try again later' :
@@ -19,16 +22,30 @@ const getClientId = () => {
   return document.getElementById("room").dataset.clientId
 }
 
+const leaveChannel = () => {
+  if (channel) {
+    channel.leave()
+    channel = null
+  }
+
+  if (mediaTogglers) {
+    mediaTogglers()
+    mediaTogglers = null
+  }
+}
+
 export const joinChannel = async ({ peerConnection }) => {
   const socket = new Socket('/socket');
   socket.connect();
+
+  leaveChannel()
 
   channel = socket.channel(`room:${getRoomId()}`, {
     client_id: getClientId(),
     ...getMediaStatus()
   });
 
-  initMediaButtonsListeners(peerConnection, channel)
+  mediaTogglers = initMediaButtonsListeners(peerConnection, channel)
 
   const presence = new Presence(channel);
   presence.onSync(() => {

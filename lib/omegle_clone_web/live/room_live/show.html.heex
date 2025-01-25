@@ -49,6 +49,9 @@
           <%= @unread_messages %>
         </div>
     </button>
+    <button class="focus:outline-none bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 text-white px-4 py-3 rounded-full shadow" phx-click={show_modal("leave_room_alert")}>
+      <.icon name="hero-arrow-right-start-on-rectangle" />
+    </button>
   </div>
 </div>
 
@@ -62,6 +65,28 @@
     Kindness matters!
     <:subtitle>Please stay respectful and polite during your chats. 😊</:subtitle>
   </.header>
+</.modal>
+
+<.modal id="leave_room_alert">
+  <.header>
+    Are you sure you want to leave?
+    <:subtitle>Upon leaving this room, you will be matched with another person.</:subtitle>
+  </.header>
+
+  <div class="flex gap-3 mt-5">
+    <button
+      phx-click={hide_modal("leave_room_alert") |> JS.push("find_other_rooms")}
+      class="items-center flex px-3 py-2 focus:outline-none bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 rounded-full shadow"
+    >
+      <h3 class="text-white text-xs font-semibold leading-4">Confirm</h3>
+    </button>
+    <button
+      phx-click={hide_modal("leave_room_alert")}
+      class="relative px-3 py-2 rounded-full text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700 text-xs font-semibold leading-4"
+    >
+      Cancel
+    </button>
+  </div>
 </.modal>
 
 <.modal

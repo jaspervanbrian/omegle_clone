@@ -133,6 +133,7 @@ defmodule OmegleCloneWeb.RoomLive.Show do
           socket
           |> put_flash(:joined_room, "interacted")
           |> push_patch(to: ~p"/room/#{room_id}", replace: true)
+          |> push_event("new_room", %{room_id: room_id})
         }
 
       _ ->

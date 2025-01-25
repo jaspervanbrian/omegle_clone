@@ -45,6 +45,11 @@ const scrollOnNewMessage = (event) => {
   }
 }
 
+const newRoomListener = (event, setupConnection) => {
+  console.log("NEW ROOM:", event)
+  setupConnection()
+}
+
 const initializeMessageContainerScrollListener = () => {
   const messagesContainer = document.getElementById("messages-container")
   messagesContainer.scrollTo(0, messagesContainer.scrollHeight);
@@ -79,6 +84,7 @@ export const initListeners = ({ setupConnection }) => {
   window.addEventListener('phx:init-lv-connection', initLvConnection)
   window.addEventListener('phx:new-message', scrollOnNewMessage)
   window.addEventListener('messages_modal:open', onModalOpen)
+  window.addEventListener('phx:new_room', (event) => newRoomListener(event, setupConnection))
 
   initializeMessageContainerScrollListener()
   initializeUnreadMessagesButtonListener()
@@ -88,7 +94,15 @@ export const initMediaButtonsListeners = (peerConnection, channel) => {
   const cameraToggle = document.getElementById('camera-toggle');
   const micToggle = document.getElementById('mic-toggle');
 
+  const toggleVideo = () => toggleMedia('video', peerConnection, channel)
+  const toggleAudio = () => toggleMedia('audio', peerConnection, channel)
+
   // Set up toggle button listeners
-  cameraToggle.addEventListener('click', () => toggleMedia('video', peerConnection, channel));
-  micToggle.addEventListener('click', () => toggleMedia('audio', peerConnection, channel));
+  cameraToggle.addEventListener('click', toggleVideo);
+  micToggle.addEventListener('click', toggleAudio);
+
+  return () => {
+    cameraToggle.removeEventListener('click', toggleVideo)
+    micToggle.removeEventListener('click', toggleAudio)
+  }
 }
