@@ -158,42 +158,47 @@ const initializeDummyStream = async (peerConnection) => {
 }
 
 const reInitializePeerConnection = async (peerConnection) => {
-  if (isDummyStreamVideoActive) {
-    const dummyVideoTrack = dummyStream.getVideoTracks()[0];
+  try {
     const videoSender = peerConnection.getSenders().find(s => s.track?.kind === 'video');
+    const audioSender = peerConnection.getSenders().find(s => s.track?.kind === 'audio');
 
-    if (videoSender) {
-      await videoSender.replaceTrack(dummyVideoTrack);
+    let stream = dummyStream
+
+    if (!isDummyStreamVideoActive || !isDummyStreamAudioActive) {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: !isDummyStreamVideoActive,
+        audio: !isDummyStreamAudioActive
+      })
     }
-  } else {
-    const videoTrack = localStream.getVideoTracks()[0];
 
-    const videoSender = peerConnection.getSenders().find(s => s.track?.kind === 'video');
+    const videoTrack = stream.getVideoTracks()[0] || dummyStream.getVideoTracks()[0];
+    const audioTrack = stream.getAudioTracks()[0] || dummyStream.getAudioTracks()[0];
 
     if (videoSender) {
       await videoSender.replaceTrack(videoTrack);
     } else {
-      peerConnection.addTrack(videoTrack, localStream);
+      peerConnection.addTrack(videoTrack, stream);
     }
-  }
-
-  if (isDummyStreamAudioActive) {
-    const dummyAudioTrack = dummyStream.getAudioTracks()[0];
-    const audioSender = peerConnection.getSenders().find(s => s.track?.kind === 'audio');
-
-    if (audioSender) {
-      await audioSender.replaceTrack(dummyAudioTrack);
-    }
-  } else {
-    const audioTrack = localStream.getAudioTracks()[0];
-
-    const audioSender = peerConnection.getSenders().find(s => s.track?.kind === 'audio');
 
     if (audioSender) {
       await audioSender.replaceTrack(audioTrack);
     } else {
-      peerConnection.addTrack(audioTrack, localStream);
+      peerConnection.addTrack(audioTrack, stream);
     }
+
+    if (!localStream) {
+      localStream = new MediaStream([ videoTrack, audioTrack ])
+      return
+    }
+
+    removeVideoTracks()
+    removeAudioTracks()
+
+    localStream.addTrack(videoTrack)
+    localStream.addTrack(audioTrack)
+  } catch(error) {
+    console.error('Error initializing media:', error);
+    alert('Unable to load user media. Please refresh the browser.');
   }
 }
 
