@@ -17,6 +17,20 @@ const closeExistingPeerConnection = () => {
 
     pc = null
   }
+
+  removePeerStreams()
+}
+
+const removePeerStreams = () => {
+  const streams = document.querySelectorAll("[data-peer]")
+
+  if (streams.length > 0) {
+    streams.forEach((el) => el.remove())
+  }
+
+  const waitingForPeersEl = document.getElementById("waiting-for-peers")
+
+  waitingForPeersEl.classList.remove('hidden')
 }
 
 const updateVideoGrid = () => {
