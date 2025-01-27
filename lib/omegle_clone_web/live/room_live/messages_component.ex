@@ -92,7 +92,7 @@ defmodule OmegleCloneWeb.RoomLive.MessagesComponent do
           <div class="flex items-center gap-2">
             <button class="items-center flex px-3 py-2 focus:outline-none bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 rounded-full shadow">
               <.icon name="hero-paper-airplane" class="text-white"/>
-              <h3 class="text-white text-xs font-semibold leading-4 px-2">Send</h3>
+              <h3 class="text-white text-xs font-semibold leading-4 px-2 hidden sm:block">Send</h3>
             </button>
           </div>
         </div>

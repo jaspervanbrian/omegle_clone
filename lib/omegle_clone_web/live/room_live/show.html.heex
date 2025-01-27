@@ -24,17 +24,17 @@
   </div>
 
   <div class="flex gap-3 justify-center">
-    <button id="camera-toggle" class="bg-red-500 text-white px-4 py-3 rounded-full" phx-update="ignore">
+    <button id="camera-toggle" class="bg-red-500 text-white px-3 py-2 rounded-full" phx-update="ignore">
       <.icon id="camera-toggle-icon-muted" name="hero-video-camera-slash" />
       <.icon id="camera-toggle-icon" name="hero-video-camera-solid" class="hidden" />
     </button>
-    <button id="mic-toggle" class="bg-red-500 text-white px-4 py-3 rounded-full" phx-update="ignore">
+    <button id="mic-toggle" class="bg-red-500 text-white px-3 py-2 rounded-full" phx-update="ignore">
       <.icon id="mic-toggle-icon-muted" name="hero-microphone" />
       <.icon id="mic-toggle-icon" name="hero-microphone-solid" class="hidden" />
     </button>
     <button
       id="messages-modal-toggle"
-      class="relative px-4 py-3 rounded-full text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+      class="relative px-3 py-2 rounded-full text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
       phx-click={
         JS.push("show_messages_modal")
         |> show_modal("messages_modal")
@@ -49,7 +49,7 @@
           <%= @unread_messages %>
         </div>
     </button>
-    <button class="focus:outline-none bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 text-white px-4 py-3 rounded-full shadow" phx-click={show_modal("leave_room_alert")}>
+    <button class="focus:outline-none bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 text-white px-3 py-2 rounded-full shadow" phx-click={show_modal("leave_room_alert")}>
       <.icon name="hero-arrow-right-start-on-rectangle" />
     </button>
   </div>
