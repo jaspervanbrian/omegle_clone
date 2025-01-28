@@ -50,7 +50,6 @@ export const joinChannel = async ({ peerConnection }) => {
   const presence = new Presence(channel);
   presence.onSync(() => {
     console.log("Peer count: ", presence.list().length)
-    console.log("Presence:", presence.state)
     if (1 < presence.list().length) {
       document.getElementById("waiting-for-peers").classList.add('hidden')
       updatePeersInfo(presence.state)

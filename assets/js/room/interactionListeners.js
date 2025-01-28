@@ -46,7 +46,6 @@ const scrollOnNewMessage = (event) => {
 }
 
 const newRoomListener = (event, setupConnection) => {
-  console.log("NEW ROOM:", event)
   setupConnection()
 }
 

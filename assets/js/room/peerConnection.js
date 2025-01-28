@@ -23,7 +23,6 @@ const closeExistingPeerConnection = () => {
 
 const removePeerStreams = (peerId = null) => {
   const streams = document.querySelectorAll(`[data-peer${peerId ? `="${peerId}"` : ""}]`)
-  console.log(streams)
 
   if (streams.length > 0) {
     streams.forEach((el) => el.remove())
@@ -151,7 +150,6 @@ export const createPeerConnection = async () => {
   pc = new RTCPeerConnection(pcConfig);
 
   pc.ontrack = (event) => {
-    console.log(event)
     if (event.track.kind == 'video') {
       const videoPlayerWrapper = createPeerVideoEl(event);
       const videoPlayerWrapperId = videoPlayerWrapper.id;
