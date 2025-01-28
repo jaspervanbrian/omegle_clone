@@ -18,15 +18,20 @@ const closeExistingPeerConnection = () => {
     pc = null
   }
 
-  removePeerStreams()
+  removeAllPeerStreams()
 }
 
-const removePeerStreams = () => {
-  const streams = document.querySelectorAll("[data-peer]")
+const removePeerStreams = (peerId = null) => {
+  const streams = document.querySelectorAll(`[data-peer${peerId ? `="${peerId}"` : ""}]`)
+  console.log(streams)
 
   if (streams.length > 0) {
     streams.forEach((el) => el.remove())
   }
+}
+
+const removeAllPeerStreams = () => {
+  removePeerStreams()
 
   const waitingForPeersEl = document.getElementById("waiting-for-peers")
 
@@ -81,6 +86,11 @@ export const playAllPeerStreamsOnStartup = async () => {
 }
 
 export const addPeerMediaInfo = (presence, payload) => {
+  // Sometimes, the PeerConnection will have a race condition that will
+  // result in two video objects, so make sure to remove existing peer
+  // streams with [data-peer=payload.peer_id] attribute
+  removePeerStreams(payload.peer_id)
+
   const username = presence.state[payload.peer_id]?.metas[0].username
   const micStatus = presence.state[payload.peer_id]?.metas[0].audio_active
   const cameraStatus = presence.state[payload.peer_id]?.metas[0].video_active
@@ -152,7 +162,7 @@ export const createPeerConnection = async () => {
       updateVideoGrid();
 
       event.track.onended = (_) => {
-        document.getElementById(videoPlayerWrapperId).remove();
+        document.getElementById(videoPlayerWrapperId)?.remove();
 
         updateVideoGrid();
       };
