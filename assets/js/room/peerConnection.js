@@ -144,6 +144,7 @@ export const createPeerConnection = async () => {
     console.log(event)
     if (event.track.kind == 'video') {
       const videoPlayerWrapper = createPeerVideoEl(event);
+      const videoPlayerWrapperId = videoPlayerWrapper.id;
 
       const streamsContainer = document.getElementById('streams-container');
       streamsContainer.appendChild(videoPlayerWrapper);
@@ -151,8 +152,7 @@ export const createPeerConnection = async () => {
       updateVideoGrid();
 
       event.track.onended = (_) => {
-        const streamsContainer = document.getElementById('streams-container');
-        streamsContainer.removeChild(videoPlayerWrapper);
+        document.getElementById(videoPlayerWrapperId).remove();
 
         updateVideoGrid();
       };

@@ -5,7 +5,12 @@ defmodule OmegleClone.Room do
 
   require Logger
 
-  alias OmegleClone.{Peer, PeerSupervisor, LiveUpdates}
+  alias OmegleClone.{
+    LiveUpdates,
+    Peer,
+    PeerSupervisor,
+    RoomRegistryServer
+  }
   alias OmegleClone.EtsServer.Cache
 
   @peer_ready_timeout_s 10
@@ -66,8 +71,6 @@ defmodule OmegleClone.Room do
 
   @impl true
   def handle_call({:add_peer, room_id, channel_pid, lv_id}, _from, state) do
-    refresh_room_ets_status(state)
-
     peer_info = %{id: id, username: username} = generate_peer_info()
     peer_ids = Map.keys(state.peers)
     opts = %{
@@ -97,6 +100,8 @@ defmodule OmegleClone.Room do
       peer_ids: peer_ids
     }})
 
+    refresh_room_ets_status(state)
+
     {:reply, {:ok, peer_info}, state}
   end
 
@@ -121,6 +126,10 @@ defmodule OmegleClone.Room do
       state
       |> Map.put(:messages, [message | state.messages])
       |> put_in([:peers, id], peer_data)
+
+    refresh_room_ets_status(state)
+
+    LiveUpdates.notify("peers:#{state.room_id}", {:peer_added, Map.keys(state.peers)})
 
     {:reply, :ok, state}
   end
@@ -192,6 +201,7 @@ defmodule OmegleClone.Room do
       end
 
     refresh_room_ets_status(state)
+    close_room_if_empty(state)
 
     {:noreply, state}
   end
@@ -214,6 +224,14 @@ defmodule OmegleClone.Room do
   end
 
   defp generate_id, do: 5 |> :crypto.strong_rand_bytes() |> Base.encode16(case: :lower)
+
+  defp close_room_if_empty(state) do
+    peer_ids(state)
+    |> Enum.empty?
+    |> if do
+      RoomRegistryServer.terminate_room(state.room_id)
+    end
+  end
 
   defp peer_ids(state) do
     Map.keys(state.peers)
@@ -270,6 +288,7 @@ defmodule OmegleClone.Room do
 
     if type === :peers do
       broadcast({:peer_removed, id}, state)
+      LiveUpdates.notify("peers:#{state.room_id}", {:peer_removed, Map.keys(state.peers)})
     end
 
     message = %{
