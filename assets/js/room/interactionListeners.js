@@ -18,6 +18,19 @@ const scrollDownMessageContainer = () => {
   messagesContainer.scrollTo(0, messagesContainer.scrollHeight);
 }
 
+const newMessage = (event) => {
+  setTimeout(renderMessageTimestamp, 200, event)
+  scrollOnNewMessage(event)
+}
+
+const renderMessageTimestamp = (event) => {
+  const messageTimestampEl = document.getElementById(`messages-${event.detail.message_id}`)?.querySelector("[data-timestamp]")
+
+  if (messageTimestampEl) {
+    messageTimestampEl.innerText = new Date(event.detail.timestamp).toLocaleTimeString()
+  }
+}
+
 const scrollOnNewMessage = (event) => {
   // Scroll down only for a certain height to allow backreading
   const messagesContainer = document.getElementById("messages-container")
@@ -81,7 +94,7 @@ const initializeUnreadMessagesButtonListener = () => {
 export const initListeners = ({ setupConnection }) => {
   window.addEventListener('click', playAllPeerStreamsOnStartup)
   window.addEventListener('phx:init-lv-connection', initLvConnection)
-  window.addEventListener('phx:new-message', scrollOnNewMessage)
+  window.addEventListener('phx:new-message', newMessage)
   window.addEventListener('messages_modal:open', onModalOpen)
   window.addEventListener('phx:new_room', (event) => newRoomListener(event, setupConnection))
 

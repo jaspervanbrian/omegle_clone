@@ -49,8 +49,7 @@ defmodule OmegleCloneWeb.RoomLive.MessagesComponent do
                         message.peer_id === @peer_id && "justify-start mr-2.5",
                         message.peer_id !== @peer_id && "justify-end ml-2.5"
                       ]}>
-                        <h6 class="text-gray-500 text-xs font-normal leading-4 py-1">
-                          {to_timestamp(message.timestamp)}
+                        <h6 class="text-gray-500 text-xs font-normal leading-4 py-1" data-timestamp>
                         </h6>
                       </div>
                     </div>
