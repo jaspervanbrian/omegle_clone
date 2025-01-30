@@ -3,6 +3,7 @@ import { initMediaButtonsListeners } from './interactionListeners'
 import { getMediaStatus } from './media'
 import { addPeerMediaInfo, updatePeersInfo }  from './peerConnection'
 
+let socket = null;
 let channel = null;
 let mediaTogglers = null;
 
@@ -35,10 +36,12 @@ const leaveChannel = () => {
 }
 
 export const joinChannel = async ({ peerConnection }) => {
-  const socket = new Socket('/socket');
-  socket.connect();
-
   leaveChannel()
+
+  if (!socket) {
+    socket = new Socket('/socket');
+    socket.connect();
+  }
 
   channel = socket.channel(`room:${getRoomId()}`, {
     client_id: getClientId(),
