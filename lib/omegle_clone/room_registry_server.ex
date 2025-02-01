@@ -37,7 +37,7 @@ defmodule OmegleClone.RoomRegistryServer do
   end
 
   def terminate_room(room_id) do
-    GenServer.call(__MODULE__, {:terminate_room, room_id})
+    GenServer.cast(__MODULE__, {:terminate_room, room_id})
   end
 
   def handle_call({:create_room, room_id}, _from, state) do
@@ -82,11 +82,15 @@ defmodule OmegleClone.RoomRegistryServer do
     {:reply, state |> Map.keys, state}
   end
 
-  def handle_call({:terminate_room, room_id}, _from, state) do
-    {_room_pid, state} = Map.pop(state, room_id)
-    Cache.delete(:active_rooms, room_id)
+  def handle_cast({:terminate_room, room_id}, state) do
+    {room_pid, state} = Map.pop(state, room_id)
 
-    {:reply, RoomSupervisor.terminate_room(room_id), state}
+    if is_pid(room_pid) do
+      Cache.delete(:active_rooms, room_id)
+      RoomSupervisor.terminate_room(room_id)
+    end
+
+    {:noreply, state}
   end
 
   defp create_room(state, room_id) do
