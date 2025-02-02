@@ -21,11 +21,15 @@ const closeExistingPeerConnection = () => {
   removeAllPeerStreams()
 }
 
-const removePeerStreams = (peerId = null) => {
-  const streams = document.querySelectorAll(`[data-peer${peerId ? `="${peerId}"` : ""}]`)
+const removePeerStreams = (options = {}) => {
+  const streams = document.querySelectorAll(`[data-peer${options.peerId ? `="${options.peerId}"` : ""}]`)
 
   if (streams.length > 0) {
-    streams.forEach((el) => el.remove())
+    streams.forEach((el) => {
+      if (options.streamId && `stream-${options.streamId}` !== el.id) {
+        el.remove()
+      }
+    })
   }
 }
 
@@ -55,6 +59,7 @@ const createPeerVideoEl = (event) => {
   const id = stream.id;
   const videoPlayerWrapper = document.createElement('div')
   const videoPlayer = document.createElement('video');
+  console.log(`CREATING ${id}`)
 
   document.getElementById(id)?.remove()
 
@@ -88,7 +93,8 @@ export const addPeerMediaInfo = (presence, payload) => {
   // Sometimes, the PeerConnection will have a race condition that will
   // result in two video objects, so make sure to remove existing peer
   // streams with [data-peer=payload.peer_id] attribute
-  removePeerStreams(payload.peer_id)
+  removePeerStreams({ peerId: payload.peer_id, streamId: payload.stream_id })
+  console.log(`${payload.peer_id} => `, payload)
 
   const username = presence.state[payload.peer_id]?.metas[0].username
   const micStatus = presence.state[payload.peer_id]?.metas[0].audio_active
@@ -115,9 +121,12 @@ export const addPeerMediaInfo = (presence, payload) => {
   cameraStatus ? cameraStatusEl.classList.add('hidden') : cameraStatusEl.classList.remove('hidden')
 
   const peerStream = document.getElementById(`stream-${payload.stream_id}`)
-  peerStream.dataset.peer = payload.peer_id
-  peerStream.appendChild(cameraStatusEl)
-  peerStream.appendChild(usernameElWrapper)
+
+  if (peerStream) {
+    peerStream.dataset.peer = payload.peer_id
+    peerStream.appendChild(cameraStatusEl)
+    peerStream.appendChild(usernameElWrapper)
+  }
 }
 
 export const updatePeersInfo = (presenceState) => {
