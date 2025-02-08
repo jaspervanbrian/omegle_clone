@@ -59,7 +59,6 @@ const createPeerVideoEl = (event) => {
   const id = stream.id;
   const videoPlayerWrapper = document.createElement('div')
   const videoPlayer = document.createElement('video');
-  console.log(`CREATING ${id}`)
 
   document.getElementById(id)?.remove()
 
@@ -94,7 +93,6 @@ export const addPeerMediaInfo = (presence, payload) => {
   // result in two video objects, so make sure to remove existing peer
   // streams with [data-peer=payload.peer_id] attribute
   removePeerStreams({ peerId: payload.peer_id, streamIdToBeRetained: payload.stream_id })
-  console.log(`${payload.peer_id} => `, payload)
 
   const username = presence.state[payload.peer_id]?.metas[0].username
   const micStatus = presence.state[payload.peer_id]?.metas[0].audio_active
