@@ -26,7 +26,7 @@ const removePeerStreams = (options = {}) => {
 
   if (streams.length > 0) {
     streams.forEach((el) => {
-      if (options.streamId && `stream-${options.streamId}` !== el.id) {
+      if (`stream-${options.streamIdToBeRetained}` !== el.id) {
         el.remove()
       }
     })
@@ -93,7 +93,7 @@ export const addPeerMediaInfo = (presence, payload) => {
   // Sometimes, the PeerConnection will have a race condition that will
   // result in two video objects, so make sure to remove existing peer
   // streams with [data-peer=payload.peer_id] attribute
-  removePeerStreams({ peerId: payload.peer_id, streamId: payload.stream_id })
+  removePeerStreams({ peerId: payload.peer_id, streamIdToBeRetained: payload.stream_id })
   console.log(`${payload.peer_id} => `, payload)
 
   const username = presence.state[payload.peer_id]?.metas[0].username
