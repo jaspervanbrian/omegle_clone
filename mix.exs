@@ -32,7 +32,7 @@ defmodule OmegleClone.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.7.14"},
+      {:phoenix, "~> 1.7.20"},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "~> 3.10"},
       {:postgrex, ">= 0.0.0"},
@@ -61,8 +61,8 @@ defmodule OmegleClone.MixProject do
       {:bandit, "~> 1.5"},
       {:uuid, "~> 1.1"},
       {:unique_names_generator, "~> 0.2.0"},
-      {:ex_webrtc, "~> 0.7.0"},
-      {:ex_webrtc_dashboard, "~> 0.7.0"},
+      {:ex_webrtc, "~> 0.8.0"},
+      {:ex_webrtc_dashboard, "~> 0.8.0"},
 
       # Dialyzer and credo
       {:dialyxir, ">= 0.0.0", only: :dev, runtime: false},
