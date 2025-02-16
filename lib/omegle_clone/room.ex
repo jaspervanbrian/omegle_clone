@@ -14,7 +14,6 @@ defmodule OmegleClone.Room do
   alias OmegleClone.EtsServer.Cache
 
   @peer_ready_timeout_s 10
-  @peer_limit 5
 
   @type id :: String.t()
   @type message :: %{
@@ -30,7 +29,7 @@ defmodule OmegleClone.Room do
     GenServer.start_link(__MODULE__, args, opts)
   end
 
-  @spec add_peer(id(), pid(), String.t()) :: {:ok, Peer.id()} | {:error, :peer_limit_reached}
+  @spec add_peer(id(), pid(), String.t()) :: {:ok, Peer.id()} | {:error, :room_max_count_reached}
   def add_peer(room_id, channel_pid, lv_id) do
     GenServer.call(registry_id(room_id), {:add_peer, room_id, channel_pid, lv_id})
   end
@@ -54,19 +53,19 @@ defmodule OmegleClone.Room do
   def registry_id(room_id), do: {:via, Registry, {OmegleClone.RoomRegistry, "room:#{room_id}"}}
 
   @impl true
-  def init([room_id]) do
-    state = init_state(room_id)
+  def init([room_id, room_max_count]) do
+    state = init_state(room_id, room_max_count)
 
     {:ok, state}
   end
 
   @impl true
   def handle_call({:add_peer, _room_id, _channel_pid, _lv_id}, _from, state)
-      when map_size(state.pending_peers) + map_size(state.peers) == @peer_limit do
-    Logger.warning("Unable to add new peer: reached peer limit (#{@peer_limit})")
+      when map_size(state.pending_peers) + map_size(state.peers) == state.room_max_count do
+    Logger.warning("Unable to add new peer: reached max room capacity limit (#{state.room_max_count})")
     refresh_room_ets_status(state)
 
-    {:reply, {:error, :peer_limit_reached}, state}
+    {:reply, {:error, :room_max_count_reached}, state}
   end
 
   @impl true
@@ -142,10 +141,10 @@ defmodule OmegleClone.Room do
   end
 
   @impl true
-  def handle_call({:close_peers, room_id}, _from, %{room_id: room_id} = state) do
+  def handle_call({:close_peers, room_id}, _from, %{room_id: room_id, room_max_count: room_max_count} = state) do
     cleanup_all_peers(state)
 
-    state = init_state(room_id)
+    state = init_state(room_id, room_max_count)
 
     {:reply, :ok, state}
   end
@@ -206,13 +205,14 @@ defmodule OmegleClone.Room do
     {:noreply, state}
   end
 
-  defp init_state(room_id) do
+  defp init_state(room_id, room_max_count) do
     %{
       room_id: room_id,
       peers: %{},
       pending_peers: %{},
       peer_pid_to_id: %{},
-      messages: []
+      messages: [],
+      room_max_count: room_max_count
     }
   end
 
@@ -256,7 +256,7 @@ defmodule OmegleClone.Room do
     case Cache.lookup(:active_rooms, state.room_id) do
       nil -> nil
       _ ->
-        status = if peer_count >= @peer_limit do
+        status = if peer_count >= state.room_max_count do
           "full"
         else
           "available"

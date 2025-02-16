@@ -12,9 +12,9 @@ defmodule OmegleClone.RoomSupervisor do
     DynamicSupervisor.start_link(__MODULE__, arg, name: __MODULE__)
   end
 
-  @spec add_room(Room.id()) :: {:ok, pid()}
-  def add_room(room_id) do
-    room_opts = [room_id]
+  @spec add_room(Room.id(), pos_integer()) :: {:ok, pid()}
+  def add_room(room_id, room_max_count \\ 2) do
+    room_opts = [room_id, room_max_count]
     gen_server_opts = [name: Room.registry_id(room_id)]
 
     child_spec = %{

@@ -93,8 +93,8 @@ defmodule OmegleClone.RoomRegistryServer do
     {:noreply, state}
   end
 
-  defp create_room(state, room_id) do
-    case RoomSupervisor.add_room(room_id) do
+  defp create_room(state, room_id, room_max_count \\ 2) do
+    case RoomSupervisor.add_room(room_id, room_max_count) do
       {:ok, supervisor} ->
         Cache.insert(:active_rooms, room_id, %{peer_count: 0, status: "available"})
         {:reply, {:ok, supervisor}, Map.put(state, room_id, supervisor)}
